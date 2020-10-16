@@ -1,0 +1,15 @@
+[submodule "libs/libcuckoo"]
+	path = libs/libcuckoo
+	url = https://github.com/efficient/libcuckoo.git
+[submodule "libs/tbb"]
+	path = libs/tbb
+	url = https://github.com/wjakob/tbb.git
+[submodule "libs/junction"]
+	path = libs/junction
+	url = https://github.com/preshing/junction.git
+[submodule "libs/turf"]
+	path = libs/turf
+	url = https://github.com/preshing/turf.git
+[submodule "libs/cxxopts"]
+	path = libs/cxxopts
+	url = https://github.com/jarro2783/cxxopts.git
