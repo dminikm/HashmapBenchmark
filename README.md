@@ -3,7 +3,6 @@
 Benchmarking multiple concurrent hashmap implementations.
 
 ## Getting the source
----------------------
 
 This project uses multiple git submodules both for hashmap libraries and various utilities and they need to get initialized.
 
@@ -13,7 +12,6 @@ git submodule init
 ```
 
 ## Building
------------
 
 ```
 mkdir build
