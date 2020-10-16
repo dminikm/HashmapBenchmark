@@ -12,6 +12,7 @@ set_target_properties(HashmapBenchmark PROPERTIES CXX_EXTENSIONS OFF)
 target_include_directories(HashmapBenchmark PUBLIC "libs/libcuckoo")
 
 # Add Intel TBB
+set(TBB_BUILD_TESTS OFF CACHE BOOL "Build TBB's tests" FORCE)
 add_subdirectory("libs/tbb")
 target_include_directories(HashmapBenchmark PUBLIC "libs/tbb/include")
 target_link_libraries(HashmapBenchmark PUBLIC tbb)
