@@ -9,6 +9,7 @@ This project uses multiple git submodules both for hashmap libraries and various
 ```
 git clone https://github.com/dminikm/HashmapBenchmark.git
 git submodule init
+git submodule update
 ```
 
 ## Building
