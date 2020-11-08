@@ -8,7 +8,9 @@
 #include <thread>
 #include <cctype>
 
-#include "benchmarks/wordcount.hpp"
+#include "benchmarks/wordcount/libcuckoo.hpp"
+#include "benchmarks/wordcount/stdmap.hpp"
+#include "benchmarks/wordcount/tbbmap.hpp"
 
 auto load_file(const std::string& path) -> std::optional<WordCountBenchmark::WordFile> {
     std::ifstream file(path);
@@ -51,13 +53,19 @@ auto main(int argc, const char** argv) -> int {
 
     if (!file) {
         std::cout << "Dataset '" << dataset_path << "' does not exist, aborting!" << std::endl;
+        return -1;
     }
 
-    auto run_result = WordCountBenchmark::libcuckoo_count_words(*file, num_threads);
+    auto benchmark_result = WordCountBenchmark::run_benchmark(WordCountBenchmark::tbbmap_count_words, *file, num_runs, num_threads);
 
-    std::cout << "Run result: " << std::endl;
-    std::cout << "Runtime: " << run_result.time << std::endl;
-    std::cout << "Hash: " << run_result.hash << std::endl;
-
+    std::cout << "Benchmark result:" << std::endl;
+    std::cout << "Correct:   " << benchmark_result.correct << std::endl;
+    std::cout << "Hash:      " << benchmark_result.hash << std::endl;
+    std::cout << "Runtime:   " << benchmark_result.total_time << std::endl;
+    std::cout << "Min time:  " << benchmark_result.min_time << std::endl;
+    std::cout << "Max time:  " << benchmark_result.max_time << std::endl;
+    std::cout << "Avg time:  " << benchmark_result.avg_time << std::endl;
+    std::cout << "Mean time: " << benchmark_result.mean_time << std::endl;
+ 
     return 0;
 }
