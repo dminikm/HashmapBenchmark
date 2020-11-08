@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#ifdef TEST_NO_WINDOWS
+#ifdef _WIN32 || _WIN64 || CYGWIN
 #include <Windows.h>
 
 class Timer {
