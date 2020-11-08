@@ -1,7 +1,7 @@
 #pragma once
-
-#ifdef _WIN32 || __CYGWIN__
 #include <cstdint>
+
+#ifdef TEST_NO_WINDOWS
 #include <Windows.h>
 
 class Timer {
@@ -50,5 +50,43 @@ class Timer {
         bool running = true;
 };
 #else
+#include <chrono>
 
+class Timer {
+    public:
+        auto start() -> void {
+            this->start_pt = this->get_timepoint();
+            this->end_pt = this->start_pt;
+            this->running = true;
+        }
+
+        auto end() -> void {
+            this->end_pt = this->get_timepoint();
+            this->running = false;
+        }
+
+        auto get_duration() -> uint64_t {
+            if (this->running) {
+                this->end();
+                this->running = true;
+            }
+
+            auto difference = this->end_pt - this->start_pt;
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(difference).count();
+        }
+
+        auto is_running() -> bool {
+            return this->running;
+        }
+
+    private:
+        auto get_timepoint() -> std::chrono::time_point<std::chrono::high_resolution_clock> {
+            return std::chrono::high_resolution_clock::now();
+        }
+
+    private:
+        std::chrono::time_point<std::chrono::high_resolution_clock> start_pt;
+        std::chrono::time_point<std::chrono::high_resolution_clock> end_pt;
+        bool running = true;
+};
 #endif
