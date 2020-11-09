@@ -11,6 +11,7 @@
 #include "benchmarks/wordcount/libcuckoo.hpp"
 #include "benchmarks/wordcount/stdmap.hpp"
 #include "benchmarks/wordcount/tbbmap.hpp"
+#include "utils/json_serializer.hpp"
 
 auto load_file(const std::string& path) -> std::optional<WordCountBenchmark::WordFile> {
     std::ifstream file(path);
@@ -29,6 +30,17 @@ auto load_file(const std::string& path) -> std::optional<WordCountBenchmark::Wor
     return result;
 }
 
+auto write_file(const std::string& path, const std::string& text) -> void {
+    std::ofstream file(path);
+
+    if (!file.is_open()) {
+        std::cerr << "Could not open file \"" << path << "\"!" << std::endl;
+        std::exit(-1);
+    }
+
+    file << text;
+}
+
 auto main(int argc, const char** argv) -> int {
     cxxopts::Options options("HashmapBenchmark", "Benchmark multiple concurrent hashmaps!");
 
@@ -36,6 +48,8 @@ auto main(int argc, const char** argv) -> int {
         ("t,threads", "Number of threads", cxxopts::value<uint32_t>()->default_value("16"))
         ("r,runs", "Number of runs per hashmap", cxxopts::value<uint32_t>()->default_value("10"))
         ("d,dataset", "Path to the used dataset", cxxopts::value<std::string>()->default_value("../data/test.ft.txt.out"))
+        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"))
+        ("w,wordcount", "Run the wordcount benchmark", cxxopts::value<std::string>()->implicit_value("std"))
         ("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
@@ -56,16 +70,38 @@ auto main(int argc, const char** argv) -> int {
         return -1;
     }
 
-    auto benchmark_result = WordCountBenchmark::run_benchmark(WordCountBenchmark::tbbmap_count_words, *file, num_runs, num_threads);
+    if (result.count("wordcount")) {
+        auto benchmark_impl_name = result["wordcount"].as<std::string>();
+        auto benchmark_impl = WordCountBenchmark::stdmap_count_words;
 
-    std::cout << "Benchmark result:" << std::endl;
-    std::cout << "Correct:   " << benchmark_result.correct << std::endl;
-    std::cout << "Hash:      " << benchmark_result.hash << std::endl;
-    std::cout << "Runtime:   " << benchmark_result.total_time << std::endl;
-    std::cout << "Min time:  " << benchmark_result.min_time << std::endl;
-    std::cout << "Max time:  " << benchmark_result.max_time << std::endl;
-    std::cout << "Avg time:  " << benchmark_result.avg_time << std::endl;
-    std::cout << "Mean time: " << benchmark_result.mean_time << std::endl;
+        if (benchmark_impl_name == "libcuckoo") {
+            std::cout << "Benchmarking libcuckoo!" << std::endl;
+            benchmark_impl = WordCountBenchmark::libcuckoo_count_words;
+        } else if (benchmark_impl_name == "tbb") {
+            std::cout << "Benchmarking TBB!" << std::endl;
+            benchmark_impl = WordCountBenchmark::tbbmap_count_words;
+        } else {
+            std::cout << "Benchmarking STD!" << std::endl;
+            benchmark_impl = WordCountBenchmark::stdmap_count_words;
+        }
+
+        auto benchmark_result = WordCountBenchmark::run_benchmark(benchmark_impl, *file, num_runs, num_threads);
+
+        std::cout << "Benchmark result:" << std::endl;
+        std::cout << "Correct:   " << benchmark_result.correct << std::endl;
+        std::cout << "Hash:      " << benchmark_result.hash << std::endl;
+        std::cout << "Runtime:   " << benchmark_result.total_time << std::endl;
+        std::cout << "Min time:  " << benchmark_result.min_time << std::endl;
+        std::cout << "Max time:  " << benchmark_result.max_time << std::endl;
+        std::cout << "Avg time:  " << benchmark_result.avg_time << std::endl;
+        std::cout << "Mean time: " << benchmark_result.mean_time << std::endl;
+
+        std::cout << "json?: " << result.count("json") << std::endl;
+
+        if (result.count("json")) {
+            write_file(result["json"].as<std::string>(), JSONSerializer::serialize_benchmark_result(benchmark_result));
+        }
+    }
  
     return 0;
 }
