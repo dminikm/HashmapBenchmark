@@ -37,6 +37,7 @@ class JSONSerializer {
 
             ss << JSONSerializer::serialize_run_results(result) << "\n";
 
+            ss << "    " << "\"implementation\": " << "\"" << result.impl << "\"" << ",\n";
             ss << "    " << "\"correct\": "        << (result.correct ? "true" : "false") << ",\n";
             ss << "    " << "\"num_runs\": "       << result.num_runs << ",\n";
             ss << "    " << "\"mun_threads\": "    << result.num_threads << ",\n";

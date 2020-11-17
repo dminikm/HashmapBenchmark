@@ -72,20 +72,24 @@ auto main(int argc, const char** argv) -> int {
 
     if (result.count("wordcount")) {
         auto benchmark_impl_name = result["wordcount"].as<std::string>();
-        auto benchmark_impl = WordCountBenchmark::stdmap_count_words;
+        WordCountBenchmark::BenchmarkResult benchmark_result;
 
         if (benchmark_impl_name == "libcuckoo") {
             std::cout << "Benchmarking libcuckoo!" << std::endl;
-            benchmark_impl = WordCountBenchmark::libcuckoo_count_words;
-        } else if (benchmark_impl_name == "tbb") {
-            std::cout << "Benchmarking TBB!" << std::endl;
-            benchmark_impl = WordCountBenchmark::tbbmap_count_words;
+            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        } else if (benchmark_impl_name == "tbb-unordered") {
+            std::cout << "Benchmarking TBB concurrent_unordered_map!" << std::endl;
+            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBUnorderedMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        } else if (benchmark_impl_name == "tbb-hash") {
+            std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
+            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBHashMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        } else if (benchmark_impl_name == "std-blocking") {
+            std::cout << "Benchmarking Blocking STD!" << std::endl;
+            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::BlockingSTDMap>(benchmark_impl_name, *file, num_runs, num_threads);
         } else {
-            std::cout << "Benchmarking STD!" << std::endl;
-            benchmark_impl = WordCountBenchmark::stdmap_count_words;
+            std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;
+            std::exit(-1);
         }
-
-        auto benchmark_result = WordCountBenchmark::run_benchmark(benchmark_impl, *file, num_runs, num_threads);
 
         std::cout << "Benchmark result:" << std::endl;
         std::cout << "Correct:   " << benchmark_result.correct << std::endl;
