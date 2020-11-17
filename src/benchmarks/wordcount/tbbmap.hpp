@@ -42,13 +42,17 @@ namespace WordCountBenchmark {
 
         public:
             inline void increase_or_insert(std::string_view key, uint64_t def) {
-                MapType::accessor ac;
+                /*MapType::accessor ac;
                 if (map.find(ac, key)) {
                     ac->second += 1;
                     ac.release();
                 } else {
                     map.insert(ac, std::make_pair(key, def));
-                }
+                }*/
+                MapType::accessor ac;
+                map.insert(ac, std::make_pair(key, def - 1));
+                ac->second += 1;
+                ac.release();
             }
 
             inline KeyValues get_key_value_pairs() {
