@@ -6,14 +6,14 @@
 namespace WordCountBenchmark {
     class CuckooMap : public WordCountMapInterface {
         public:
-            virtual void increase_or_insert(std::string_view key, uint64_t def) {
+            inline void increase_or_insert(std::string_view key, uint64_t def) {
                 this->map.upsert(key, [](uint32_t& value) -> bool {
                     value += 1;
                     return false;
                 }, def);
             }
 
-            virtual KeyValues get_key_value_pairs() {
+            inline KeyValues get_key_value_pairs() {
                 KeyValues kvs;
                 kvs.reserve(this->map.size());
 

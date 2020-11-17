@@ -35,7 +35,8 @@ namespace WordCountBenchmark {
         bool correct;
     };
 
-    inline auto benchmark_count_part(Semaphore& semaphore, const WordFile& file, WordCountMapInterface& map, uint32_t start, uint32_t end) -> void {
+    template<typename T>
+    inline auto benchmark_count_part(Semaphore& semaphore, const WordFile& file, T& map, uint32_t start, uint32_t end) -> void {
         // Wait for test start
         semaphore.wait();
 
@@ -62,7 +63,8 @@ namespace WordCountBenchmark {
         }
     }
 
-    inline uint64_t hash_whole_map(WordCountMapInterface& map) {
+    template<typename T>
+    inline uint64_t hash_whole_map(T& map) {
         auto kvs = map.get_key_value_pairs();
         uint64_t hash = kvs.size();
 
@@ -78,7 +80,7 @@ namespace WordCountBenchmark {
 
     template<typename T>
     inline auto benchmark_impl(const WordFile& file, uint32_t num_threads) -> RunResult {
-        WordCountMapInterface* map = new T();
+        T map;
         Semaphore sem;
         
         RunResult result;
@@ -92,10 +94,10 @@ namespace WordCountBenchmark {
 
             threads.push_back(
                 std::thread(
-                    &benchmark_count_part,
+                    &benchmark_count_part<T>,
                     std::ref(sem),
                     std::cref(file),
-                    std::ref(*map),
+                    std::ref(map),
                     start,
                     end
                 )
@@ -117,10 +119,9 @@ namespace WordCountBenchmark {
         // End timer
         t.end();
 
-        result.hash = hash_whole_map(*map);
+        result.hash = hash_whole_map<T>(map);
         result.time = t.get_duration();
 
-        delete map;
         return result;
     }
 

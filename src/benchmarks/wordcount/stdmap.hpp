@@ -5,11 +5,11 @@
 namespace WordCountBenchmark {
     class AtomicSTDMap : public WordCountMapInterface {
         public:
-            virtual void increase_or_insert(std::string_view key, uint64_t def) {
+            inline void increase_or_insert(std::string_view key, uint64_t def) {
                 this->map[key].fetch_add(1, std::memory_order::memory_order_acq_rel);
             }
 
-            virtual KeyValues get_key_value_pairs() {
+            inline KeyValues get_key_value_pairs() {
                 KeyValues kvs;
                 kvs.reserve(this->map.size());
 
@@ -28,12 +28,12 @@ namespace WordCountBenchmark {
 
     class BlockingSTDMap : public WordCountMapInterface {
         public:
-            virtual void increase_or_insert(std::string_view key, uint64_t def) {
+            inline void increase_or_insert(std::string_view key, uint64_t def) {
                 std::lock_guard<std::mutex> guard(this->mtx);
                 this->map[key] += 1;
             }
 
-            virtual KeyValues get_key_value_pairs() {
+            inline KeyValues get_key_value_pairs() {
                 std::lock_guard<std::mutex> guard(this->mtx);
 
                 KeyValues kvs;

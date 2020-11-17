@@ -6,11 +6,11 @@
 namespace WordCountBenchmark {
     class TBBUnorderedMap : public WordCountMapInterface {
         public:
-            virtual void increase_or_insert(std::string_view key, uint64_t def) {
+            inline void increase_or_insert(std::string_view key, uint64_t def) {
                 this->map[key].fetch_and_increment();
             }
 
-            virtual KeyValues get_key_value_pairs() {
+            inline KeyValues get_key_value_pairs() {
                 KeyValues kvs;
                 kvs.reserve(this->map.size());
 
@@ -41,7 +41,7 @@ namespace WordCountBenchmark {
             };
 
         public:
-            virtual void increase_or_insert(std::string_view key, uint64_t def) {
+            inline void increase_or_insert(std::string_view key, uint64_t def) {
                 MapType::accessor ac;
                 if (map.find(ac, key)) {
                     ac->second += 1;
@@ -51,7 +51,7 @@ namespace WordCountBenchmark {
                 }
             }
 
-            virtual KeyValues get_key_value_pairs() {
+            inline KeyValues get_key_value_pairs() {
                 KeyValues kvs;
                 kvs.reserve(this->map.size());
 
