@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { each } from "svelte/internal";
-import type { BenchmarkResult } from "../Types/BenchmarkResult";
+    import type { BenchmarkResult } from "../Types/BenchmarkResult";
+    import PopupBubble from "./PopupBubble.svelte";
     export let data: BenchmarkResult[] = [];
     
     $: processedData = processData(data);
@@ -99,13 +100,26 @@ import type { BenchmarkResult } from "../Types/BenchmarkResult";
         "#FFE800",
     ];
 
-    let fontSize = 12;
+    let fontSize = 14;
 </script>
 
 <style>
     div, div > svg {
         width: 100%;
         height: 100%;
+    }
+
+    .hover-circle {
+        opacity: 0;
+        z-index: 99999;
+    }
+
+    .hover-container {
+        display: none;
+    }
+
+    .hover-circle:hover + .hover-container {
+        display: inline;
     }
 </style>
 
@@ -164,6 +178,33 @@ import type { BenchmarkResult } from "../Types/BenchmarkResult";
                         style={`stroke: ${colors[color_index]}; stroke-width: 2;`}
                     />
                 {/if}
+            {/each}
+        {/each}
+
+        {#each Array.from(processedData) as [impl, threadMap], color_index}
+            {#each Array.from(threadMap).sort(([k, a], [k2, b]) => a.num_threads - b.num_threads) as [num_threads, benchmark], i}
+                <circle
+                    class="hover-circle"
+                    cx={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
+                    cy={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark)}
+                    r={20}
+                />
+
+                <g class="hover-container">
+                    <circle
+                        cx={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
+                        cy={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark)}
+                        r={4}
+                        style={`fill: ${colors[color_index]}`}
+                    >
+                    </circle>
+                    <PopupBubble
+                        tipX={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
+                        tipY={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark) - 4}
+                        text={`${Math.floor(benchmark.mean_time / 1000000)}ms`}
+                    />
+                </g>
+                
             {/each}
         {/each}
     </svg>

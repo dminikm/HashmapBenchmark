@@ -25,6 +25,9 @@
     :global(*) {
         padding: 0px;
         margin: 0px;
+
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
     }
     
     :global(html, body), main {
@@ -45,6 +48,8 @@
     }
 
     h3 {
+        font-size: 20px;
+
         margin: 0px;
         line-height: 45px;
 
