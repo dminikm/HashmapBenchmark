@@ -40,7 +40,7 @@ class JSONSerializer {
             ss << "    " << "\"implementation\": " << "\"" << result.impl << "\"" << ",\n";
             ss << "    " << "\"correct\": "        << (result.correct ? "true" : "false") << ",\n";
             ss << "    " << "\"num_runs\": "       << result.num_runs << ",\n";
-            ss << "    " << "\"mun_threads\": "    << result.num_threads << ",\n";
+            ss << "    " << "\"num_threads\": "    << result.num_threads << ",\n";
             ss << "    " << "\"total_time\": "     << result.total_time << ",\n";
             ss << "    " << "\"min_time\": "       << result.min_time << ",\n";
             ss << "    " << "\"avg_time\": "       << result.avg_time << ",\n";
