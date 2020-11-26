@@ -53,7 +53,7 @@
         for (let i = 0; i < ranges.length; i++) {
             const range = ranges[i];
 
-            if (bench.mean_time > range) {
+            if (bench.avg_time > range) {
                 biggerThan = i;
                 smallerThan = i + 1;
             } else {
@@ -64,7 +64,7 @@
         const bigger = ranges[biggerThan];
         const smaller = ranges[smallerThan] || bigger;
 
-        const perc = (bench.mean_time - bigger) / (smaller - bigger);
+        const perc = (bench.avg_time - bigger) / (smaller - bigger);
         return (biggerThan * ySpacing) + (ySpacing * perc);
     }
 
@@ -201,7 +201,7 @@
                     <PopupBubble
                         tipX={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
                         tipY={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark) - 4}
-                        text={`${Math.floor(benchmark.mean_time / 1000000)}ms`}
+                        text={`${Math.floor(benchmark.avg_time / 1000000)}ms`}
                     />
                 </g>
                 

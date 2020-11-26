@@ -92,7 +92,7 @@ namespace WordCountBenchmark {
             auto start = i * even_split;
             auto end = (i == num_threads - 1) ? file.size() : ((i + 1) * even_split);
 
-            threads.push_back(
+            threads.emplace_back(
                 std::thread(
                     &benchmark_count_part<T>,
                     std::ref(sem),
