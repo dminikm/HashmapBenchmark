@@ -3,29 +3,6 @@
 #include "wordcount.hpp"
 
 namespace WordCountBenchmark {
-    class AtomicSTDMap : public WordCountMapInterface {
-        public:
-            inline void increase_or_insert(std::string_view key, uint64_t def) {
-                this->map[key].fetch_add(1, std::memory_order::memory_order_acq_rel);
-            }
-
-            inline KeyValues get_key_value_pairs() {
-                KeyValues kvs;
-                kvs.reserve(this->map.size());
-
-                for (auto& [key, value] : this->map) {
-                    kvs.push_back(std::make_pair(key, value.load()));
-                }
-
-                std::stable_sort(kvs.begin(), kvs.end());
-
-                return kvs;
-            }
-
-        private:
-            std::unordered_map<std::string_view, std::atomic<uint32_t>> map;
-    };
-
     class BlockingSTDMap : public WordCountMapInterface {
         public:
             inline void increase_or_insert(std::string_view key, uint64_t def) {
