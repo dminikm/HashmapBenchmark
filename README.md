@@ -14,20 +14,34 @@ git submodule update
 
 ## Building
 
-```
+```shell
 mkdir build
 cd build
 cmake ..
-make
-make install
+cmake --build . --config Release --target install
 ```
 
 If you are using mingw on windows (MSYS2/mingw-w64/...), you might need to configure turf to use it's WIN32 implementation to avoid build errors.
 
-```
+```shell
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" -DTURF_USERCONFIG=turf_options/mingw/turf_userconfig.h.in ..
-make
-make install
+cmake -G "MinGW Makefiles" -DTURF_USERCONFIG=turf_options/mingw/turf_userconfig.h.in -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-m64 ..
+cmake --build . --config Release --target install
+```
+
+## Running
+
+### Wordcount test
+Wordcount has 4 implementations:
+ - libcuckoo
+ - tbb-hash - tbb::concurrent_hash_map
+ - tbb-unordered - tbb::concurrent_unordered_map + tbb::atomic
+ - std-blocking - std::unordered_map + std::mutex
+
+### Example
+running libcuckoo benchmark with 4 threads, 60 runs outputting results to json:
+```shell
+mkdir runs
+./HashmapBenchmark -t 4 -r 60 --wordcount=libcuckoo --json=runs/4t_60r_libcuckoo.json --dataset=../data/test.ft.txt.out
 ```
