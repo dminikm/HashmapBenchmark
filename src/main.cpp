@@ -70,41 +70,28 @@ auto main(int argc, const char** argv) -> int {
         return -1;
     }
 
-    if (result.count("wordcount")) {
-        auto benchmark_impl_name = result["wordcount"].as<std::string>();
-        WordCountBenchmark::BenchmarkResult benchmark_result;
+    WordCountBenchmark::BenchmarkResult benchmark_result;
 
-        if (benchmark_impl_name == "libcuckoo") {
-            std::cout << "Benchmarking libcuckoo!" << std::endl;
-            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>(benchmark_impl_name, *file, num_runs, num_threads);
-        } else if (benchmark_impl_name == "tbb-unordered") {
-            std::cout << "Benchmarking TBB concurrent_unordered_map!" << std::endl;
-            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBUnorderedMap>(benchmark_impl_name, *file, num_runs, num_threads);
-        } else if (benchmark_impl_name == "tbb-hash") {
-            std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
-            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBHashMap>(benchmark_impl_name, *file, num_runs, num_threads);
-        } else if (benchmark_impl_name == "std-blocking") {
-            std::cout << "Benchmarking Blocking STD!" << std::endl;
-            benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::BlockingSTDMap>(benchmark_impl_name, *file, num_runs, num_threads);
-        } else {
-            std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;
-            std::exit(-1);
-        }
+    for (int i = 1; i <= num_threads; i++) {
+        std::cout << "Benchmarking libcuckoo!" << std::endl;
+        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>("libcuckoo", *file, num_runs, i);
+    
+        write_file("profile-runs/" + benchmark_result.impl + "_" + std::to_string(i) + "t_" + std::to_string(num_runs) + "r.json", JSONSerializer::serialize_benchmark_result(benchmark_result));
 
-        std::cout << "Benchmark result:" << std::endl;
-        std::cout << "Correct:   " << benchmark_result.correct << std::endl;
-        std::cout << "Hash:      " << benchmark_result.hash << std::endl;
-        std::cout << "Runtime:   " << benchmark_result.total_time << std::endl;
-        std::cout << "Min time:  " << benchmark_result.min_time << std::endl;
-        std::cout << "Max time:  " << benchmark_result.max_time << std::endl;
-        std::cout << "Avg time:  " << benchmark_result.avg_time << std::endl;
-        std::cout << "Mean time: " << benchmark_result.mean_time << std::endl;
+        std::cout << "Benchmarking TBB concurrent_unordered_map!" << std::endl;
+        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBUnorderedMap>("tbb_unordered_map", *file, num_runs, i);
 
-        std::cout << "json?: " << result.count("json") << std::endl;
+        write_file("profile-runs/" + benchmark_result.impl + "_" + std::to_string(i) + "t_" + std::to_string(num_runs) + "r.json", JSONSerializer::serialize_benchmark_result(benchmark_result));
+    
+        std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
+        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBHashMap>("tbb_hash_map", *file, num_runs, i);
 
-        if (result.count("json")) {
-            write_file(result["json"].as<std::string>(), JSONSerializer::serialize_benchmark_result(benchmark_result));
-        }
+        write_file("profile-runs/" + benchmark_result.impl + "_" + std::to_string(i) + "t_" + std::to_string(num_runs) + "r.json", JSONSerializer::serialize_benchmark_result(benchmark_result));
+    
+        std::cout << "Benchmarking Blocking STD!" << std::endl;
+        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::BlockingSTDMap>("blocking-std", *file, num_runs, i);
+
+        write_file("profile-runs/" + benchmark_result.impl + "_" + std::to_string(i) + "t_" + std::to_string(num_runs) + "r.json", JSONSerializer::serialize_benchmark_result(benchmark_result));
     }
  
     return 0;
