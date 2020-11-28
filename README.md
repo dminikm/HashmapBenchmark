@@ -18,7 +18,6 @@ git submodule update
 mkdir build
 cd build
 cmake ..
-make
 make install
 ```
 
@@ -28,6 +27,10 @@ If you are using mingw on windows (MSYS2/mingw-w64/...), you might need to confi
 mkdir build
 cd build
 cmake -G "MinGW Makefiles" -DTURF_USERCONFIG=turf_options/mingw/turf_userconfig.h.in ..
-make
 make install
 ```
+
+## Running
+
+This version runs all of the wordcount benchmarks one after the other, repsecting only the num_threads and num_run arguments.
+
