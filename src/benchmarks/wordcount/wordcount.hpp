@@ -60,6 +60,21 @@ namespace WordCountBenchmark {
                     word_start = o + 1;
                 }
             }
+
+            // In case this line ends with a valid letter, we need to add it to the hash map
+            auto o = line.size() - 1;
+            auto len = o - word_start;
+
+            // Word was already added
+            if (word_start >= o) {
+                continue;
+            }
+
+            // Empty word check
+            if (len > 0) {
+                map.increase_or_insert(std::string_view(line.c_str() + word_start, len), 1);
+            }
+
         }
     }
 
