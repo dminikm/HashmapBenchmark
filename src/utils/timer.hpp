@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 
 class Timer {
