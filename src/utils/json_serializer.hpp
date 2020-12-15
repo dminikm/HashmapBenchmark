@@ -2,11 +2,11 @@
 #include <string>
 #include <sstream>
 
-#include "../benchmarks/wordcount/wordcount.hpp"
+#include "../benchmarks/benchmark.hpp"
 
 class JSONSerializer {
     public:
-        static auto serialize_run_results(WordCountBenchmark::BenchmarkResult& result) -> std::string {
+        static auto serialize_run_results(BenchmarkResult& result) -> std::string {
             std::stringstream ss;
 
             ss << "[\n";
@@ -28,7 +28,7 @@ class JSONSerializer {
             return ss.str();
         }
 
-        static auto serialize_benchmark_result(WordCountBenchmark::BenchmarkResult& result) -> std::string {
+        static auto serialize_benchmark_result(BenchmarkResult& result) -> std::string {
             std::stringstream ss;
 
             ss << "{\n";

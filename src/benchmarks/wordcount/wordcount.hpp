@@ -7,33 +7,10 @@
 #include "interface.hpp"
 #include "../../utils/semaphore.hpp"
 #include "../../utils/timer.hpp"
+#include "../benchmark.hpp"
 
 namespace WordCountBenchmark {
     using WordFile = std::vector<std::string>;
-
-    struct RunResult {
-        uint64_t time;
-        uint64_t hash;
-    };
-
-    struct BenchmarkResult {
-        std::string impl;
-
-        std::vector<RunResult> runs;
-
-        uint64_t total_time;
-        uint64_t avg_time;
-        uint64_t min_time;
-        uint64_t max_time;
-        uint64_t mean_time;
-
-        uint64_t hash;
-
-        uint32_t num_threads;
-        uint32_t num_runs;
-
-        bool correct;
-    };
 
     template<typename T>
     inline auto benchmark_count_part(Semaphore& semaphore, const WordFile& file, T& map, uint32_t start, uint32_t end) -> void {
