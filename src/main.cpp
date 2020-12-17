@@ -69,6 +69,12 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
         std::exit(-1);
     }
 
+    if (result.count("implementation") == 0) {
+        std::cout << "No map implementation selected" << std::endl;
+        std::cout << options.help() << std::endl;
+        std::exit(0);
+    }
+
     auto benchmark_impl_name = result["implementation"].as<std::string>();
     BenchmarkResult benchmark_result;
 
