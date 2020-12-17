@@ -40,8 +40,8 @@ Wordcount has 4 implementations:
  - std-blocking - std::unordered_map + std::mutex
 
 ### Example
-running libcuckoo benchmark with 4 threads, 60 runs outputting results to json:
+Running libcuckoo benchmark with 4 threads, 60 runs outputting results to json:
 ```shell
 mkdir runs
-./HashmapBenchmark -t 4 -r 60 --wordcount=libcuckoo --json=runs/4t_60r_libcuckoo.json --dataset=../data/test.ft.txt.out
+./HashmapBenchmark wordcount -t 4 -r 60 --implementation=libcuckoo --json=runs/4t_60r_libcuckoo.json --dataset=../data/test.ft.txt.out
 ```

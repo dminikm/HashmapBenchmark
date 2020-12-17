@@ -40,7 +40,7 @@ auto write_file(const std::string& path, const std::string& text) -> void {
 }
 
 auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
-    cxxopts::Options options("HashmapBenchmark", "Benchmark multiple concurrent hashmaps (Wordcount benchmark)!");
+    cxxopts::Options options("HashmapBenchmark wordcount", "Benchmark multiple concurrent hashmaps (WordCount benchmark)!");
 
     options.add_options()
         ("t,threads", "Number of threads", cxxopts::value<uint32_t>()->default_value("16"))
@@ -52,6 +52,11 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
 
     options.allow_unrecognised_options();
     auto result = options.parse(argc, argv);
+
+    if (result.count("help") > 0) {
+        std::cout << options.help() << std::endl;
+        std::exit(0);
+    }
 
     auto num_threads = result["threads"].as<uint32_t>();
     auto num_runs = result["runs"].as<uint32_t>();
@@ -88,7 +93,7 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
 }
 
 auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
-    cxxopts::Options options("HashmapBenchmark", "Benchmark multiple concurrent hashmaps (Wordcount benchmark)!");
+    cxxopts::Options options("HashmapBenchmark hashjoin", "Benchmark multiple concurrent hashmaps (HashJoin benchmark)!");
 
     options.add_options()
         ("t,threads", "Number of threads", cxxopts::value<uint32_t>()->default_value("16"))
@@ -101,6 +106,11 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
 
     options.allow_unrecognised_options();
     auto result = options.parse(argc, argv);
+
+    if (result.count("help") > 0) {
+        std::cout << options.help() << std::endl;
+        std::exit(0);
+    }
 
     auto num_threads = result["threads"].as<uint32_t>();
     auto num_runs = result["runs"].as<uint32_t>();
@@ -116,34 +126,39 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
 auto main(int argc, const char** argv) -> int {
     cxxopts::Options options("HashmapBenchmark", "Benchmark multiple concurrent hashmaps!");
     options.add_options()
-        ("mode", "MODE", cxxopts::value<std::string>())
+        ("benchmark", "", cxxopts::value<std::string>())
         ("h,help", "Print usage")
         ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"));
 
-    options.parse_positional({"mode"});
+    options.positional_help("[benchmark]");
+    options.parse_positional({"benchmark"});
     options.allow_unrecognised_options();
+
     auto result = options.parse(argc, argv);
 
-    if (result["help"].count() > 0) {
+    if (result.count("help") > 0 && result.count("benchmark") == 0) {
         std::cout << options.help() << std::endl;
         return 0;
     }
 
     BenchmarkResult benchmark_result;
 
-    if (result["mode"].count() > 0) {
-        auto mode = result["mode"].as<std::string>();
+    if (result.count("benchmark") > 0) {
+        auto benchmark = result["benchmark"].as<std::string>();
 
-        if (mode == "wordcount") {
+        if (benchmark == "wordcount") {
             benchmark_result = main_wordcount(argc, argv);
-        } else if (mode == "hashjoin") {
+        } else if (benchmark == "hashjoin") {
             benchmark_result = main_hashjoin(argc, argv);
         } else {
-            std::cout << "Unknown mode " << mode << std::endl;
+            std::cout << "Unknown benchmark " << benchmark << std::endl;
             std::cout << options.help() << std::endl;
-            return 0;
+            return -1;
         }
-
+    } else {
+        std::cout << "No benchmark selected!" << std::endl;
+        std::cout << options.help() << std::endl;
+        return -1;
     }
 
     std::cout << "Benchmark result:" << std::endl;
@@ -161,5 +176,6 @@ auto main(int argc, const char** argv) -> int {
     if (result.count("json")) {
         write_file(result["json"].as<std::string>(), JSONSerializer::serialize_benchmark_result(benchmark_result));
     }
+    
     return 0;
 }
