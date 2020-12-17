@@ -26,7 +26,7 @@ class IntSemaphore {
     public:
         auto wait() -> void {
             std::unique_lock<std::mutex> lock(this->mut);
-            var.wait(lock, [this]() { 
+            this->var.wait(lock, [this]() { 
                 bool done = this->value > 0;
 
                 if (done) {
@@ -40,6 +40,7 @@ class IntSemaphore {
         auto notify_one() -> void {
             std::lock_guard<std::mutex> lock(this->mut);
             this->value++;
+            this->var.notify_one();
         }
 
     private:

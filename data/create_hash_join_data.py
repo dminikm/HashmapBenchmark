@@ -5,7 +5,7 @@ random.seed('mec0037')
 
 input_file_name = sys.argv[1] or 'test.ft.txt.out'
 num_smaller_entries = int(sys.argv[2]) or 100000
-num_larger_entries = int(sys.argv[2]) or 1000000
+num_larger_entries = int(sys.argv[3]) or 1000000
 
 text = ''
 with open(input_file_name) as file:
@@ -51,5 +51,5 @@ def prepare_larger_entries(text, ids, num_entries, file_name):
             file.write(f"{new_id};{join_id};{text[str_start:str_start + str_len]}\n")
             num_id += 1
 
-prepared_ids = prepare_smaller_entries(text, num_smaller_entries, 'data/hash_join_smaller.txt')
-prepare_larger_entries(text, prepared_ids, num_larger_entries, 'data/hash_join_larger.txt')
+prepared_ids = prepare_smaller_entries(text, num_smaller_entries, 'hash_join_smaller.txt')
+prepare_larger_entries(text, prepared_ids, num_larger_entries, 'hash_join_larger.txt')

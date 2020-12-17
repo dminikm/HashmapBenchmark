@@ -5,4 +5,5 @@
 #include "wordcount/tbbmap.hpp"
 
 #include "hashjoin/libcuckoo.hpp"
+#include "hashjoin/stdmap.hpp"
 

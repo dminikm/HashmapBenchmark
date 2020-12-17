@@ -80,18 +80,59 @@ namespace HashJoinBenchmark {
     template<typename T>
     inline auto benchmark_probe_part_prober(Semaphore& sem, const DatasetB& dataset_b, T& map, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, uint32_t start, uint32_t end) -> void {
         sem.wait();
+
+        for (auto i = start; i < end; i++) {
+            auto& item = dataset_b[i];
+            auto value = map.get(std::get<1>(item));
+
+            queue->push(std::make_tuple(
+                std::get<0>(value),
+                std::get<1>(value),
+                std::get<0>(item),
+                std::get<1>(item),
+                std::get<2>(item)
+            ));
+        }
+
+        // Stop worker thread
+        queue->finish();
     }
 
-    inline auto benchmark_probe_part_handler(Semaphore& sem, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue) -> uint64_t {
+    template <typename T>
+    inline auto hash(T value) -> uint64_t {
+        return std::hash<T>{}(value);
+    }
+
+    inline auto hash_combine(uint64_t hash1, uint64_t hash2) -> uint64_t {
+        return hash1 ^ (hash2 + 0x9E3779B9 + (hash1 << 6) + (hash1 >> 2));
+    }
+
+    inline auto hash_result(HashJoinResultValue value) -> uint64_t {
+        return std::apply([](auto&& ... x) {
+            uint64_t h = 0;
+            ((h = ... = hash_combine(h, hash(x))));
+            return h;
+        }, value);
+    }
+
+    inline auto benchmark_probe_part_handler(Semaphore& sem, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, std::shared_ptr<uint64_t> hash_ptr) -> void {
         sem.wait();
 
+        // DEBUG:
+        //std::cout << "PK1\t\tPK2\t\tFK2\t\tHASH" << std::endl;
+
         auto res = queue->pop();
-        do
+        auto h = hash_result(res.value);
+
+        while (!res.finished)
         {
             // TODO: Hash combine
-        } while (!res.finished);
+            res = queue->pop();
+            h = hash_combine(h, hash_result(res.value));
+            std::cout << std::get<0>(res.value) << "\t\t" << std::get<2>(res.value) << "\t\t" << std::get<3>(res.value) << "\t\t" << std::hex << h << std::dec << std::endl;
+        }
 
-        return 0;
+        *hash_ptr = h;
     }
 
     template<typename T>
@@ -142,16 +183,50 @@ namespace HashJoinBenchmark {
             Semaphore sem;
 
             auto even_split = dataset_b.size() / num_threads;
-
-            using SharedThread = std::shared_ptr<std::thread>;
-            std::vector<std::pair<SharedThread, SharedThread>> threads;
+            std::vector<std::tuple<std::thread, std::thread, std::shared_ptr<uint64_t>>> threads;
 
             for (auto i = 0; i < num_threads; i++) {
                 auto start = i * even_split;
                 auto end = (i == num_threads - 1) ? dataset_b.size() : ((i + 1) * even_split);
 
                 auto queue = std::make_shared<WorkQueue<HashJoinResultValue>>();
+                auto hash = std::make_shared<uint64_t>(0);
+
+                threads.push_back(std::make_tuple(
+                    std::thread(
+                        &benchmark_probe_part_prober<T>,
+                        std::ref(sem),
+                        std::cref(dataset_b),
+                        std::ref(map),
+                        queue,
+                        start,
+                        end
+                    ), std::thread(
+                        &benchmark_probe_part_handler,
+                        std::ref(sem),
+                        queue,
+                        hash
+                    ),
+                    hash
+                ));
             }
+
+            t.start();
+            sem.notify_all();
+
+            uint64_t hash = 0;
+
+            for (auto& [t1, t2, h] : threads) {
+                t1.join();
+                t2.join();
+
+                hash = hash_combine(hash, *h);
+            }
+
+            t.end();
+
+            result.hash = hash;
+            result.time = t.get_duration() + build_duration;
         }
 
         return result;

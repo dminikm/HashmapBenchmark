@@ -32,7 +32,7 @@ class WorkQueue {
 
         auto push(T item) -> void {
             std::lock_guard<std::mutex> lock(this->mtx);
-            this->inner.push_back(item);
+            this->inner.push(item);
             this->sem.notify_one();
         }
 
