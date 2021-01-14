@@ -129,7 +129,7 @@ namespace HashJoinBenchmark {
             // TODO: Hash combine
             res = queue->pop();
             h = hash_combine(h, hash_result(res.value));
-            std::cout << std::get<0>(res.value) << "\t\t" << std::get<2>(res.value) << "\t\t" << std::get<3>(res.value) << "\t\t" << std::hex << h << std::dec << std::endl;
+            //std::cout << std::get<0>(res.value) << "\t\t" << std::get<2>(res.value) << "\t\t" << std::get<3>(res.value) << "\t\t" << std::hex << h << std::dec << std::endl;
         }
 
         *hash_ptr = h;

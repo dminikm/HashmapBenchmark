@@ -5,10 +5,6 @@
 namespace HashJoinBenchmark {
     class CuckooMap {
         public:
-            CuckooMap() {
-
-            }
-
             auto insert(uint32_t key, DatasetAValue value) -> void {
                 this->map.insert(key, value);
             }

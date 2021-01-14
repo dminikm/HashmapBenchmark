@@ -72,30 +72,27 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
     if (result.count("implementation") == 0) {
         std::cout << "No map implementation selected" << std::endl;
         std::cout << options.help() << std::endl;
-        std::exit(0);
+        std::exit(-1);
     }
 
     auto benchmark_impl_name = result["implementation"].as<std::string>();
-    BenchmarkResult benchmark_result;
 
     if (benchmark_impl_name == "libcuckoo") {
         std::cout << "Benchmarking libcuckoo!" << std::endl;
-        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        return WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>(benchmark_impl_name, *file, num_runs, num_threads);
     } else if (benchmark_impl_name == "tbb-unordered") {
         std::cout << "Benchmarking TBB concurrent_unordered_map!" << std::endl;
-        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBUnorderedMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        return WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBUnorderedMap>(benchmark_impl_name, *file, num_runs, num_threads);
     } else if (benchmark_impl_name == "tbb-hash") {
         std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
-        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBHashMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        return WordCountBenchmark::run_benchmark<WordCountBenchmark::TBBHashMap>(benchmark_impl_name, *file, num_runs, num_threads);
     } else if (benchmark_impl_name == "std-blocking") {
         std::cout << "Benchmarking Blocking STD!" << std::endl;
-        benchmark_result = WordCountBenchmark::run_benchmark<WordCountBenchmark::BlockingSTDMap>(benchmark_impl_name, *file, num_runs, num_threads);
+        return WordCountBenchmark::run_benchmark<WordCountBenchmark::BlockingSTDMap>(benchmark_impl_name, *file, num_runs, num_threads);
     } else {
         std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;
         std::exit(-1);
     }
- 
-    return benchmark_result;
 }
 
 auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
@@ -107,7 +104,7 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
         ("a,dataseta", "Path to the used dataset A", cxxopts::value<std::string>()->default_value("../data/hash_join_smaller.txt"))
         ("b,datasetb", "Path to the used dataset B", cxxopts::value<std::string>()->default_value("../data/hash_join_larger.txt"))
         ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"))
-        ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std"))
+        ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std-blocking"))
         ("h,help", "Print usage");
 
     options.allow_unrecognised_options();
@@ -126,7 +123,30 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
     auto dataset_a = HashJoinBenchmark::load_dataset_a(dataset_a_path);
     auto dataset_b = HashJoinBenchmark::load_dataset_b(dataset_b_path);
 
-    return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::STDMap>("test", dataset_a, dataset_b, num_runs, num_threads);
+    auto benchmark_impl_name = result["implementation"].as<std::string>();
+
+    if (benchmark_impl_name == "libcuckoo") {
+        std::cout << "Benchmarking libcuckoo!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::CuckooMap>("libcuckoo", dataset_a, dataset_b, num_runs, num_threads);
+    } else if (benchmark_impl_name == "tbb-unordered") {
+        std::cout << "Benchmarking TBB concurrent_unordered_map!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::TBBUnorderedMap>("tbb-unordered", dataset_a, dataset_b, num_runs, num_threads);
+    } else if (benchmark_impl_name == "tbb-hash") {
+        std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::TBBHashMap>("tbb-hash", dataset_a, dataset_b, num_runs, num_threads);
+    } else if (benchmark_impl_name == "std-blocking") {
+        std::cout << "Benchmarking Blocking STD!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::CuckooMap>("std-blocking", dataset_a, dataset_b, num_runs, num_threads);
+    } else if (benchmark_impl_name == "junction-grampa") {
+        std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::JunctionMapGrampa>("junction-grampa", dataset_a, dataset_b, num_runs, num_threads);
+    } else if (benchmark_impl_name == "junction-leapfrog") {
+        std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::JunctionMapLeapfrog>("junction-leapfrog", dataset_a, dataset_b, num_runs, num_threads);
+    } else {
+        std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;
+        std::exit(-1);
+    }
 }
 
 auto main(int argc, const char** argv) -> int {

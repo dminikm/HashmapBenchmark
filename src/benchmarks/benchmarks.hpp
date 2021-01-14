@@ -6,4 +6,6 @@
 
 #include "hashjoin/libcuckoo.hpp"
 #include "hashjoin/stdmap.hpp"
+#include "hashjoin/tbbmap.hpp"
+#include "hashjoin/junction.hpp"
 
