@@ -22,23 +22,12 @@ namespace HashJoinBenchmark {
                 }
             }
 
-            /*auto get_thread_qsrb_context() -> junction::QSBR::Context {
-                static thread_local auto context = junction::defaultQSRB.createContext();
-                return context;
-            }*/
-
             auto insert(uint32_t key, DatasetAValue value) -> void {
-                /*auto context = get_thread_qsrb_context();
-
-                junction::DefaultQSBR.update(context);*/
                 auto valueHeap = new DatasetAValue(value);
                 this->map.assign(key, valueHeap);
             }
 
-            auto get(uint32_t key) -> DatasetAValue {
-                /*auto context = get_thread_qsrb_context();
-
-                junction::DefaultQSBR.update(context);*/
+            auto get(uint32_t key) -> const DatasetAValue& {
                 return *this->map.get(key);
             }
 
@@ -51,8 +40,4 @@ namespace HashJoinBenchmark {
 
     using JunctionMapLeapfrogInner = junction::ConcurrentMap_Leapfrog<turf::u32, DatasetAValue*>;
     using JunctionMapLeapfrog = JunctionMap<JunctionMapLeapfrogInner, JunctionMapLeapfrogInner::Iterator>;
-
-    /*using JunctionMapLeapfrog = JunctionMap<junction::ConcurrentMap_Leapfrog<turf::u32, DatasetAValue*>>;
-    using JunctionMapCrude = JunctionMap<junction::ConcurrentMap_Crude<turf::u32, DatasetAValue*>>;
-    using JunctionMapLinear = JunctionMap<junction::ConcurrentMap_Linear<turf::u32, DatasetAValue*>>;*/
 }

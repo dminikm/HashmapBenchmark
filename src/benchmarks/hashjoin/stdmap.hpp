@@ -11,7 +11,7 @@ namespace HashJoinBenchmark {
                 this->map.insert({key, value});
             }
 
-            auto get(uint32_t key) -> DatasetAValue {
+            auto get(uint32_t key) -> const DatasetAValue& {
                 return this->map.at(key);
             }
 

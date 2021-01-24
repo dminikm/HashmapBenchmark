@@ -3,9 +3,9 @@ import sys
 
 random.seed('mec0037')
 
-input_file_name = sys.argv[1] or 'test.ft.txt.out'
+input_file_name = str(sys.argv[1]) or 'test.ft.txt.out'
 num_smaller_entries = int(sys.argv[2]) or 100000
-num_larger_entries = int(sys.argv[3]) or 1000000
+num_larger_entries = int(sys.argv[3]) or 10000000
 
 text = ''
 with open(input_file_name) as file:

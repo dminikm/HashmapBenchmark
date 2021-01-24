@@ -125,6 +125,11 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
 
     auto benchmark_impl_name = result["implementation"].as<std::string>();
 
+    std::cout << "Num threads: " << num_threads << std::endl;
+    std::cout << "Num runs: " << num_runs << std::endl;
+    std::cout << "Num smaller: " << dataset_a.size() << std::endl;
+    std::cout << "Num larger:  " << dataset_b.size() << std::endl;
+
     if (benchmark_impl_name == "libcuckoo") {
         std::cout << "Benchmarking libcuckoo!" << std::endl;
         return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::CuckooMap>("libcuckoo", dataset_a, dataset_b, num_runs, num_threads);
@@ -141,7 +146,7 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
         std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
         return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::JunctionMapGrampa>("junction-grampa", dataset_a, dataset_b, num_runs, num_threads);
     } else if (benchmark_impl_name == "junction-leapfrog") {
-        std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
+        std::cout << "Benchmarking Junction ConcurrentMap_Leapfrog!" << std::endl;
         return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::JunctionMapLeapfrog>("junction-leapfrog", dataset_a, dataset_b, num_runs, num_threads);
     } else {
         std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;

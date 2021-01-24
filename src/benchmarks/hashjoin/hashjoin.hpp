@@ -248,7 +248,10 @@ namespace HashJoinBenchmark {
         result.hash = 0;
 
         for (uint32_t i = 0; i < num_runs; i++) {
+            std::cout << "Starting run " << i << std::endl;
             auto run_result = benchmark_impl<T>(dataset_a, dataset_b, num_threads);
+            std::cout << "Run " << i << " ended!" << std::endl;
+            std::cout << "Run took " << run_result.time << "ns | " << (run_result.time / 1000000) << "ms | " << (run_result.time / 1000000000) << "s" << std::endl;
 
             if (i == 0) {
                 result.hash = run_result.hash;
