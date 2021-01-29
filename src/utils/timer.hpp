@@ -86,8 +86,8 @@ class Timer {
         }
 
     private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> start_pt;
-        std::chrono::time_point<std::chrono::high_resolution_clock> end_pt;
+        std::chrono::time_point<std::chrono::high_resolution_clock> start_pt{};
+        std::chrono::time_point<std::chrono::high_resolution_clock> end_pt{};
         bool running = true;
 };
 #endif

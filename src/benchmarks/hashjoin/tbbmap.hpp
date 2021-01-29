@@ -6,7 +6,7 @@
 namespace HashJoinBenchmark {
     class TBBHashMap {
         public:
-            auto insert(uint32_t key, DatasetAValue value) -> void {
+            auto insert(uint32_t key, const DatasetAValue& value) -> void {
                 this->map.insert({key, value});
             }
 
@@ -26,7 +26,7 @@ namespace HashJoinBenchmark {
 
     class TBBUnorderedMap {
         public:
-            auto insert(uint32_t key, DatasetAValue value) -> void {
+            auto insert(uint32_t key, const DatasetAValue& value) -> void {
                 this->map.insert({key, value});
             }
 

@@ -22,9 +22,9 @@ namespace HashJoinBenchmark {
                 }
             }
 
-            auto insert(uint32_t key, DatasetAValue value) -> void {
-                auto valueHeap = new DatasetAValue(value);
-                this->map.assign(key, valueHeap);
+            auto insert(uint32_t key, const DatasetAValue& value) -> void {
+                auto heapValue = new DatasetAValue(value);
+                this->map.assign(key, heapValue);
             }
 
             auto get(uint32_t key) -> const DatasetAValue& {

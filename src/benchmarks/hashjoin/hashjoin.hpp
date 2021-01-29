@@ -28,7 +28,7 @@ namespace HashJoinBenchmark {
             return {};
         }
 
-        DatasetA result;
+        DatasetA result{};
 
         std::string line;
         while (std::getline(file, line)) {
@@ -50,7 +50,7 @@ namespace HashJoinBenchmark {
             return {};
         }
 
-        DatasetB result;
+        DatasetB result{};
 
         std::string line;
         while (std::getline(file, line)) {
@@ -77,8 +77,25 @@ namespace HashJoinBenchmark {
         }
     }
 
+    template <typename T>
+    inline auto hash(const T& value) -> uint64_t {
+        return std::hash<T>{}(value);
+    }
+
+    inline auto hash_combine(uint64_t hash1, uint64_t hash2) -> uint64_t {
+        return hash1 ^ (hash2 + 0x9E3779B9 + (hash1 << 6) + (hash1 >> 2));
+    }
+
+    inline auto hash_result(const HashJoinResultValue& value) -> uint64_t {
+        return std::apply([](auto&& ... x) {
+            uint64_t h = 0;
+            ((h = ... = hash_combine(h, hash(x))));
+            return h;
+        }, value);
+    }
+
     template<typename T>
-    inline auto benchmark_probe_part_prober(Semaphore& sem, const DatasetB& dataset_b, T& map, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, uint32_t start, uint32_t end) -> void {
+    inline auto benchmark_probe_part_prober(Semaphore& sem, const DatasetB& dataset_b, T& map, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, uint32_t start, uint32_t end) -> void {        
         sem.wait();
 
         for (auto i = start; i < end; i++) {
@@ -91,45 +108,20 @@ namespace HashJoinBenchmark {
                 std::get<0>(item),
                 std::get<1>(item),
                 std::get<2>(item)
-            ));
+            ), i == end - 1);
         }
-
-        // Stop worker thread
-        queue->finish();
-    }
-
-    template <typename T>
-    inline auto hash(T value) -> uint64_t {
-        return std::hash<T>{}(value);
-    }
-
-    inline auto hash_combine(uint64_t hash1, uint64_t hash2) -> uint64_t {
-        return hash1 ^ (hash2 + 0x9E3779B9 + (hash1 << 6) + (hash1 >> 2));
-    }
-
-    inline auto hash_result(HashJoinResultValue value) -> uint64_t {
-        return std::apply([](auto&& ... x) {
-            uint64_t h = 0;
-            ((h = ... = hash_combine(h, hash(x))));
-            return h;
-        }, value);
     }
 
     inline auto benchmark_probe_part_handler(Semaphore& sem, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, std::shared_ptr<uint64_t> hash_ptr) -> void {
         sem.wait();
 
-        // DEBUG:
-        //std::cout << "PK1\t\tPK2\t\tFK2\t\tHASH" << std::endl;
-
-        auto res = queue->pop();
-        auto h = hash_result(res.value);
-
-        while (!res.finished)
-        {
-            // TODO: Hash combine
-            res = queue->pop();
+        uint64_t h = 0;
+        for (uint64_t i = 0;; i++) {
+            auto res = queue->pop();
             h = hash_combine(h, hash_result(res.value));
-            //std::cout << std::get<0>(res.value) << "\t\t" << std::get<2>(res.value) << "\t\t" << std::get<3>(res.value) << "\t\t" << std::hex << h << std::dec << std::endl;
+
+            if (res.finished)
+                break;
         }
 
         *hash_ptr = h;
@@ -177,7 +169,6 @@ namespace HashJoinBenchmark {
         }
 
         // Probe phase
-        
         {
             Timer t;
             Semaphore sem;
@@ -248,10 +239,7 @@ namespace HashJoinBenchmark {
         result.hash = 0;
 
         for (uint32_t i = 0; i < num_runs; i++) {
-            std::cout << "Starting run " << i << std::endl;
             auto run_result = benchmark_impl<T>(dataset_a, dataset_b, num_threads);
-            std::cout << "Run " << i << " ended!" << std::endl;
-            std::cout << "Run took " << run_result.time << "ns | " << (run_result.time / 1000000) << "ms | " << (run_result.time / 1000000000) << "s" << std::endl;
 
             if (i == 0) {
                 result.hash = run_result.hash;
@@ -261,8 +249,7 @@ namespace HashJoinBenchmark {
                 result.correct = false;
             }
 
-            result.runs.push_back(run_result);
-            
+            result.runs.push_back(run_result);          
             result.total_time += run_result.time;
 
             result.min_time = std::min(result.min_time, run_result.time);

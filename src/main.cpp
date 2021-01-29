@@ -11,23 +11,6 @@
 #include "utils/json_serializer.hpp"
 #include "benchmarks/benchmarks.hpp"
 
-auto load_file(const std::string& path) -> std::optional<WordCountBenchmark::WordFile> {
-    std::ifstream file(path);
-
-    if (!file.is_open()) {
-        return {};
-    }
-
-    std::vector<std::string> result;
-
-    std::string line;
-    while (std::getline(file, line)) {
-        result.push_back(std::move(line));
-    }
-
-    return result;
-}
-
 auto write_file(const std::string& path, const std::string& text) -> void {
     std::ofstream file(path);
 
@@ -62,7 +45,7 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
     auto num_runs = result["runs"].as<uint32_t>();
     auto dataset_path = result["dataset"].as<std::string>();
 
-    auto file = load_file(dataset_path);
+    auto file = WordCountBenchmark::load_file(dataset_path);
 
     if (!file) {
         std::cout << "Dataset '" << dataset_path << "' does not exist, aborting!" << std::endl;

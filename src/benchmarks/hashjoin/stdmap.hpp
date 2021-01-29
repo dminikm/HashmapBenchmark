@@ -6,7 +6,7 @@
 namespace HashJoinBenchmark {
     class STDMap {
         public:
-            auto insert(uint32_t key, DatasetAValue value) -> void {
+            auto insert(uint32_t key, const DatasetAValue& value) -> void {
                 std::lock_guard<std::mutex> guard(this->mtx);
                 this->map.insert({key, value});
             }

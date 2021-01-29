@@ -12,6 +12,23 @@
 namespace WordCountBenchmark {
     using WordFile = std::vector<std::string>;
 
+    auto load_file(const std::string& path) -> std::optional<WordFile> {
+        std::ifstream file(path);
+
+        if (!file.is_open()) {
+            return {};
+        }
+
+        std::vector<std::string> result;
+
+        std::string line;
+        while (std::getline(file, line)) {
+            result.push_back(std::move(line));
+        }
+
+        return result;
+    }
+
     template<typename T>
     inline auto benchmark_count_part(Semaphore& semaphore, const WordFile& file, T& map, uint32_t start, uint32_t end) -> void {
         // Wait for test start
