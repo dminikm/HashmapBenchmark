@@ -8,7 +8,6 @@
 #include <fstream>
 #include "../../utils/semaphore.hpp"
 #include "../../utils/timer.hpp"
-#include "../../utils/work_queue.hpp"
 #include "../benchmark.hpp"
 
 namespace HashJoinBenchmark {
@@ -95,33 +94,21 @@ namespace HashJoinBenchmark {
     }
 
     template<typename T>
-    inline auto benchmark_probe_part_prober(Semaphore& sem, const DatasetB& dataset_b, T& map, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, uint32_t start, uint32_t end) -> void {        
+    inline auto benchmark_probe_part(Semaphore& sem, const DatasetB& dataset_b, T& map, uint32_t start, uint32_t end, std::shared_ptr<uint64_t> hash_ptr) -> void {        
+        uint64_t h = 0;
         sem.wait();
 
         for (auto i = start; i < end; i++) {
             auto& item = dataset_b[i];
             auto value = map.get(std::get<1>(item));
 
-            queue->push(std::make_tuple(
+            h = hash_combine(h, hash_result(std::make_tuple(
                 std::get<0>(value),
                 std::get<1>(value),
                 std::get<0>(item),
                 std::get<1>(item),
                 std::get<2>(item)
-            ), i == end - 1);
-        }
-    }
-
-    inline auto benchmark_probe_part_handler(Semaphore& sem, std::shared_ptr<WorkQueue<HashJoinResultValue>> queue, std::shared_ptr<uint64_t> hash_ptr) -> void {
-        sem.wait();
-
-        uint64_t h = 0;
-        for (uint64_t i = 0;; i++) {
-            auto res = queue->pop();
-            h = hash_combine(h, hash_result(res.value));
-
-            if (res.finished)
-                break;
+            )));
         }
 
         *hash_ptr = h;
@@ -174,28 +161,22 @@ namespace HashJoinBenchmark {
             Semaphore sem;
 
             auto even_split = dataset_b.size() / num_threads;
-            std::vector<std::tuple<std::thread, std::thread, std::shared_ptr<uint64_t>>> threads;
+            std::vector<std::tuple<std::thread, std::shared_ptr<uint64_t>>> threads;
 
             for (auto i = 0; i < num_threads; i++) {
                 auto start = i * even_split;
                 auto end = (i == num_threads - 1) ? dataset_b.size() : ((i + 1) * even_split);
 
-                auto queue = std::make_shared<WorkQueue<HashJoinResultValue>>();
                 auto hash = std::make_shared<uint64_t>(0);
 
                 threads.push_back(std::make_tuple(
                     std::thread(
-                        &benchmark_probe_part_prober<T>,
+                        &benchmark_probe_part<T>,
                         std::ref(sem),
                         std::cref(dataset_b),
                         std::ref(map),
-                        queue,
                         start,
-                        end
-                    ), std::thread(
-                        &benchmark_probe_part_handler,
-                        std::ref(sem),
-                        queue,
+                        end,
                         hash
                     ),
                     hash
@@ -207,10 +188,8 @@ namespace HashJoinBenchmark {
 
             uint64_t hash = 0;
 
-            for (auto& [t1, t2, h] : threads) {
+            for (auto& [t1, h] : threads) {
                 t1.join();
-                t2.join();
-
                 hash = hash_combine(hash, *h);
             }
 
