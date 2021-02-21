@@ -9,3 +9,4 @@
 #include "hashjoin/tbbmap.hpp"
 #include "hashjoin/junction.hpp"
 
+#include "cache/stdmap.hpp"

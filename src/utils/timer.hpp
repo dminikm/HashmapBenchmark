@@ -5,16 +5,33 @@
 #define NOMINMAX
 #include <Windows.h>
 
+auto get_timepoint() -> uint64_t {
+    LARGE_INTEGER timepoint{};
+    QueryPerformanceCounter(&timepoint);
+
+    return timepoint.QuadPart;
+}
+
+auto get_duration(uint64_t start_timepoint, uint64_t end_timepoint) -> uint64_t {
+    LARGE_INTEGER frequency{};
+    QueryPerformanceFrequency(&frequency);
+
+    uint64_t ns_per_count = (uint64_t)1e9 / frequency.QuadPart;
+
+    auto difference = end_timepoint - start_timepoint;
+    return difference * ns_per_count;
+}
+
 class Timer {
     public:
         auto start() -> void {
-            this->start_ns = this->get_timepoint();
+            this->start_ns = get_timepoint();
             this->end_ns = this->start_ns;
             this->running = true;
         }
 
         auto end() -> void {
-            this->end_ns = this->get_timepoint();
+            this->end_ns = get_timepoint();
             this->running = false;
         }
 
@@ -24,25 +41,11 @@ class Timer {
                 this->running = true;
             }
 
-            LARGE_INTEGER frequency{};
-            QueryPerformanceFrequency(&frequency);
-
-            uint64_t ns_per_count = (uint64_t)1e9 / frequency.QuadPart;
-
-            auto difference = this->end_ns - this->start_ns;
-            return difference * ns_per_count;
+            return ::get_duration(this->start_ns, this->end_ns);
         }
 
         auto is_running() -> bool {
             return this->running;
-        }
-
-    private:
-        auto get_timepoint() -> uint64_t {
-            LARGE_INTEGER timepoint{};
-            QueryPerformanceCounter(&timepoint);
-
-            return timepoint.QuadPart;
         }
 
     private:
@@ -53,16 +56,24 @@ class Timer {
 #else
 #include <chrono>
 
+auto get_timepoint() -> std::chrono::time_point<std::chrono::high_resolution_clock> {
+    return std::chrono::high_resolution_clock::now();
+}
+
+auto get_duration(uint64_t start_timepoint, uint64_t end_timepoint) -> uint64_t {
+    return end_timepoint - start_timepoint
+}
+
 class Timer {
     public:
         auto start() -> void {
-            this->start_pt = this->get_timepoint();
+            this->start_pt = get_timepoint();
             this->end_pt = this->start_pt;
             this->running = true;
         }
 
         auto end() -> void {
-            this->end_pt = this->get_timepoint();
+            this->end_pt = get_timepoint();
             this->running = false;
         }
 
@@ -72,17 +83,11 @@ class Timer {
                 this->running = true;
             }
 
-            auto difference = this->end_pt - this->start_pt;
-            return std::chrono::duration_cast<std::chrono::nanoseconds>(difference).count();
+            return this->end_pt - this->start_pt
         }
 
         auto is_running() -> bool {
             return this->running;
-        }
-
-    private:
-        auto get_timepoint() -> std::chrono::time_point<std::chrono::high_resolution_clock> {
-            return std::chrono::high_resolution_clock::now();
         }
 
     private:

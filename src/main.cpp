@@ -30,7 +30,7 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
         ("r,runs", "Number of runs per hashmap", cxxopts::value<uint32_t>()->default_value("10"))
         ("d,dataset", "Path to the used dataset", cxxopts::value<std::string>()->default_value("../data/test.ft.txt.out"))
         ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std"))
-        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"))
+        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.json"))
         ("h,help", "Print usage");
 
     options.allow_unrecognised_options();
@@ -86,7 +86,7 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
         ("r,runs", "Number of runs per hashmap", cxxopts::value<uint32_t>()->default_value("10"))
         ("a,dataseta", "Path to the used dataset A", cxxopts::value<std::string>()->default_value("../data/hash_join_smaller.txt"))
         ("b,datasetb", "Path to the used dataset B", cxxopts::value<std::string>()->default_value("../data/hash_join_larger.txt"))
-        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"))
+        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.json"))
         ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std-blocking"))
         ("h,help", "Print usage");
 
@@ -137,12 +137,44 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
     }
 }
 
+auto main_cache(int argc, const char** argv) -> BenchmarkResult {
+    cxxopts::Options options("HashmapBenchmark hashjoin", "Benchmark multiple concurrent hashmaps (Cache benchmark)!");
+
+    options.add_options()
+        ("t,threads", "Number of threads", cxxopts::value<uint32_t>()->default_value("16"))
+        ("r,runs", "Number of runs per hashmap", cxxopts::value<uint32_t>()->default_value("10"))
+        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.json"))
+        ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std-blocking"))
+        ("s,seed", "Random seed to use", cxxopts::value<uint64_t>()->default_value("37"))
+        ("t,time", "Time limit for this benchmark (ms)", cxxopts::value<uint64_t>()->default_value("30000"))
+        ("c,capacity", "Map capacity (affects number of max indices)", cxxopts::value<uint64_t>()->default_value("500000"))
+        ("h,help", "Print usage");
+
+    options.allow_unrecognised_options();
+    auto result = options.parse(argc, argv);
+
+    if (result.count("help") > 0) {
+        std::cout << options.help() << std::endl;
+        std::exit(0);
+    }
+
+    auto num_threads = result["threads"].as<uint32_t>();
+    auto num_runs = result["runs"].as<uint32_t>();
+    auto seed = result["seed"].as<uint64_t>();
+    auto time_limit = result["time"].as<uint64_t>();
+    auto capacity = result["capacity"].as<uint64_t>();
+
+    auto benchmark_impl_name = result["implementation"].as<std::string>();
+
+    return CacheBenchmark::run_benchmark<CacheBenchmark::STDMap>("std-blocking", seed, time_limit, capacity, num_runs, num_threads);
+}
+
 auto main(int argc, const char** argv) -> int {
     cxxopts::Options options("HashmapBenchmark", "Benchmark multiple concurrent hashmaps!");
     options.add_options()
         ("benchmark", "", cxxopts::value<std::string>())
         ("h,help", "Print usage")
-        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.txt"));
+        ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.json"));
 
     options.positional_help("[benchmark]");
     options.parse_positional({"benchmark"});
@@ -164,6 +196,8 @@ auto main(int argc, const char** argv) -> int {
             benchmark_result = main_wordcount(argc, argv);
         } else if (benchmark == "hashjoin") {
             benchmark_result = main_hashjoin(argc, argv);
+        } else if (benchmark == "cache") {
+            benchmark_result = main_cache(argc, argv);
         } else {
             std::cout << "Unknown benchmark " << benchmark << std::endl;
             std::cout << options.help() << std::endl;
