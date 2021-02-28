@@ -4,7 +4,7 @@
 #include <cstdint>
 
 struct RunResult {
-    uint64_t time;
+    uint64_t value;
     uint64_t hash;
 };
 
@@ -13,11 +13,12 @@ struct BenchmarkResult {
 
     std::vector<RunResult> runs;
 
-    uint64_t total_time;
-    uint64_t avg_time;
-    uint64_t min_time;
-    uint64_t max_time;
-    uint64_t mean_time;
+    std::string value_unit;
+    uint64_t total_value;
+    uint64_t avg_value;
+    uint64_t min_value;
+    uint64_t max_value;
+    uint64_t mean_value;
 
     uint64_t hash;
 

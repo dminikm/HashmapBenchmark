@@ -9,4 +9,7 @@
 #include "hashjoin/tbbmap.hpp"
 #include "hashjoin/junction.hpp"
 
+#include "cache/libcuckoo.hpp"
 #include "cache/stdmap.hpp"
+#include "cache/tbbmap.hpp"
+#include "cache/junction.hpp"

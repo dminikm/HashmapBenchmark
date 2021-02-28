@@ -32,7 +32,8 @@ namespace CacheBenchmark {
             }
 
             auto erase(uint64_t key) -> void {
-                this->map.erase(key);
+                if (this->map.erase(key))
+                    this->size.fetch_sub(1);
             }
 
             auto get_size() const -> uint64_t {

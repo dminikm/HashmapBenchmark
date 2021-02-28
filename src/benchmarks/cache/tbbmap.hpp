@@ -8,7 +8,7 @@ namespace CacheBenchmark {
     class TBBHashMap {
         public:
             TBBHashMap(uint64_t capacity) : capacity(capacity), size(0) {
-                this->map.reserve(capacity, this->map.get_allocator());
+                // We can't use reserve on concurrent_hash_map as it's inherited as protected
             }
 
             auto access(uint64_t key) -> CacheData {
@@ -16,15 +16,12 @@ namespace CacheBenchmark {
                 if (this->map.find(accessor, key)) {
                     return accessor->second;
                 } else {
-                    accessor.upgrade_to_writer();
-
                     auto size = this->get_size();
                     auto capacity = this->get_capacity();
 
                     // Wait while we have less than 2% of free space
                     while (size > capacity - (capacity / 50))
                         size = this->get_size();
-
 
                     if (map.emplace(accessor, key, key))
                         this->size.fetch_add(1);
@@ -34,7 +31,8 @@ namespace CacheBenchmark {
             }
 
             auto erase(uint64_t key) -> void {
-                this->map.erase(key);
+                if (this->map.erase(key))
+                    this->size.fetch_sub(1);
             }
 
             auto get_size() const -> uint64_t {
@@ -47,56 +45,6 @@ namespace CacheBenchmark {
 
         private:
             using MapType = tbb::concurrent_hash_map<uint64_t, CacheData>;
-            MapType map;
-
-            uint64_t capacity;
-            std::atomic<uint64_t> size;
-    };
-
-    class TBBHashMap {
-        public:
-            TBBHashMap(uint64_t capacity) : capacity(capacity), size(0) {
-                this->map = MapType(capacity);
-            }
-
-            auto access(uint64_t key) -> CacheData {
-                auto res = this->map.find(key);
-                //res
-
-                if (false) {
-                    //return accessor->second;
-                } else {
-                    /*accessor.upgrade_to_writer();*/
-
-                    auto size = this->get_size();
-                    auto capacity = this->get_capacity();
-
-                    // Wait while we have less than 2% of free space
-                    while (size > capacity - (capacity / 50))
-                        size = this->get_size();
-
-
-                    if (this->map.emplace(key, key))
-                        this->size.fetch_add(1);
-
-                    return key;
-                }
-            }
-
-            auto erase(uint64_t key) -> void {
-                this->map.erase(key);
-            }
-
-            auto get_size() const -> uint64_t {
-                return this->size.load();
-            }
-
-            auto get_capacity() const -> uint64_t {
-                return this->capacity;
-            }
-
-        private:
-            using MapType = tbb::concurrent_unordered_map<uint64_t, CacheData>;
             MapType map;
 
             uint64_t capacity;

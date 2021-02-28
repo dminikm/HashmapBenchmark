@@ -196,7 +196,7 @@ namespace HashJoinBenchmark {
             t.end();
 
             result.hash = hash;
-            result.time = t.get_duration() + build_duration;
+            result.value = t.get_duration() + build_duration;
         }
 
         return result;
@@ -207,13 +207,14 @@ namespace HashJoinBenchmark {
         BenchmarkResult result{};
 
         result.impl = impl;
+        result.value_unit = "ns";
         result.correct = true;
         result.num_runs = num_runs;
         result.num_threads = num_threads;
 
-        result.total_time = 0;
-        result.min_time = std::numeric_limits<uint64_t>::max();
-        result.max_time = std::numeric_limits<uint64_t>::min();
+        result.total_value = 0;
+        result.min_value = std::numeric_limits<uint64_t>::max();
+        result.max_value = std::numeric_limits<uint64_t>::min();
 
         result.hash = 0;
 
@@ -229,14 +230,14 @@ namespace HashJoinBenchmark {
             }
 
             result.runs.push_back(run_result);          
-            result.total_time += run_result.time;
+            result.total_value += run_result.value;
 
-            result.min_time = std::min(result.min_time, run_result.time);
-            result.max_time = std::max(result.max_time, run_result.time);
+            result.min_value = std::min(result.min_value, run_result.value);
+            result.max_value = std::max(result.max_value, run_result.value);
         }
 
-        result.avg_time = result.total_time / result.num_runs;
-        result.mean_time = result.runs[result.num_runs / 2].time;
+        result.avg_value = result.total_value / result.num_runs;
+        result.mean_value = result.runs[result.num_runs / 2].value;
 
         return result;
     }

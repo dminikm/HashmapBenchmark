@@ -51,9 +51,7 @@ namespace CacheBenchmark {
 
         bool cleaning = false;
 
-        DBG( << "[Cleaner] Starting!" << std::endl);
-
-        for (uint64_t i = 0; !done.load(); i = (i + 1) % num_ids) {
+        for (uint64_t i = 1; !done.load(); i = (i + 1) % num_ids) {
             auto size = map.get_size();
             auto capacity = map.get_capacity();
 
@@ -64,16 +62,11 @@ namespace CacheBenchmark {
                     return;
             }
 
-            if (cleaning == false) {
-                DBG( << "[Cleaner] Started cleaning!" << std::endl);
-            }
-
             cleaning = true;
             map.erase(i);
 
             if (size < capacity - (capacity / 10)) {
                 cleaning = false;
-                DBG( << "[Cleaner] Stopped cleaning!" << std::endl);
             }
         }
     }
@@ -146,9 +139,7 @@ namespace CacheBenchmark {
         cleaner_thread.join();
 
         result.hash = 0;                        // No way to verify correctness
-        result.time = num_accesses;             // TODO: Storing runs in time ...
-
-        // We dont care about timing this thread
+        result.value = num_accesses;
 
         return result;
     }
@@ -157,14 +148,15 @@ namespace CacheBenchmark {
     inline auto run_benchmark(const std::string& impl, uint64_t seed, uint64_t time_limit, uint64_t map_capacity, uint32_t num_runs, uint32_t num_threads) -> BenchmarkResult {
         BenchmarkResult result{};
 
+        result.value_unit = "";
         result.impl = impl;
         result.correct = true;
         result.num_runs = num_runs;
         result.num_threads = num_threads;
 
-        result.total_time = 0;
-        result.min_time = std::numeric_limits<uint64_t>::max();
-        result.max_time = std::numeric_limits<uint64_t>::min();
+        result.total_value = 0;
+        result.min_value = std::numeric_limits<uint64_t>::max();
+        result.max_value = std::numeric_limits<uint64_t>::min();
 
         result.hash = 0;
 
@@ -180,14 +172,14 @@ namespace CacheBenchmark {
             }
 
             result.runs.push_back(run_result);          
-            result.total_time += run_result.time;
+            result.total_value += run_result.value;
 
-            result.min_time = std::min(result.min_time, run_result.time);
-            result.max_time = std::max(result.max_time, run_result.time);
+            result.min_value = std::min(result.min_value, run_result.value);
+            result.max_value = std::max(result.max_value, run_result.value);
         }
 
-        result.avg_time = result.total_time / result.num_runs;
-        result.mean_time = result.runs[result.num_runs / 2].time;
+        result.avg_value = result.total_value / result.num_runs;
+        result.mean_value = result.runs[result.num_runs / 2].value;
 
         return result;
     }

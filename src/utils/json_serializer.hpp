@@ -19,7 +19,7 @@ class JSONSerializer {
                 }
 
                 ss << "        " << "{\n";
-                ss << "            " << "\"time\": " << run.time << ",\n";
+                ss << "            " << "\"value\": " << run.value << ",\n";
                 ss << "            " << "\"hash\": " << run.hash << "\n";
                 ss << "        " << "}";
             }
@@ -37,15 +37,16 @@ class JSONSerializer {
 
             ss << JSONSerializer::serialize_run_results(result) << "\n";
 
-            ss << "    " << "\"implementation\": " << "\"" << result.impl << "\"" << ",\n";
-            ss << "    " << "\"correct\": "        << (result.correct ? "true" : "false") << ",\n";
-            ss << "    " << "\"num_runs\": "       << result.num_runs << ",\n";
-            ss << "    " << "\"num_threads\": "    << result.num_threads << ",\n";
-            ss << "    " << "\"total_time\": "     << result.total_time << ",\n";
-            ss << "    " << "\"min_time\": "       << result.min_time << ",\n";
-            ss << "    " << "\"avg_time\": "       << result.avg_time << ",\n";
-            ss << "    " << "\"mean_time\": "      << result.mean_time << ",\n";
-            ss << "    " << "\"max_time\": "       << result.max_time << "\n";
+            ss << "    " << "\"implementation\": "  << "\"" << result.impl << "\"" << ",\n";
+            ss << "    " << "\"value_unit\": "      << "\"" << result.value_unit << "\"" << ",\n";
+            ss << "    " << "\"correct\": "         << (result.correct ? "true" : "false") << ",\n";
+            ss << "    " << "\"num_runs\": "        << result.num_runs << ",\n";
+            ss << "    " << "\"num_threads\": "     << result.num_threads << ",\n";
+            ss << "    " << "\"total_value\": "     << result.total_value << ",\n";
+            ss << "    " << "\"min_value\": "       << result.min_value << ",\n";
+            ss << "    " << "\"avg_value\": "       << result.avg_value << ",\n";
+            ss << "    " << "\"mean_value\": "      << result.mean_value << ",\n";
+            ss << "    " << "\"max_value\": "       << result.max_value << "\n";
 
             ss << "}\n";
 

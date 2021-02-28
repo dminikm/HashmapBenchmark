@@ -1,4 +1,4 @@
-#pragma once
+    #pragma once
 #include <unordered_map>
 #include <mutex>
 #include <shared_mutex>
@@ -22,8 +22,6 @@ namespace CacheBenchmark {
                         return res->second;
                 }
 
-                DBG(<< "[Accessor] Item doesn't exist, adding it!" << std::endl);
-
                 auto size = this->get_size();
                 auto capacity = this->get_capacity();
 
@@ -44,8 +42,8 @@ namespace CacheBenchmark {
 
             auto erase(uint64_t key) -> void {
                 std::unique_lock lock(mtx);
-                this->map.erase(key);
-                this->size.fetch_sub(1);
+                if (this->map.erase(key) >= 0)
+                    this->size.fetch_sub(1);
             }
 
             auto get_size() const -> uint64_t {

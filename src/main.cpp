@@ -124,7 +124,7 @@ auto main_hashjoin(int argc, const char** argv) -> BenchmarkResult {
         return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::TBBHashMap>("tbb-hash", dataset_a, dataset_b, num_runs, num_threads);
     } else if (benchmark_impl_name == "std-blocking") {
         std::cout << "Benchmarking Blocking STD!" << std::endl;
-        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::CuckooMap>("std-blocking", dataset_a, dataset_b, num_runs, num_threads);
+        return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::STDMap>("std-blocking", dataset_a, dataset_b, num_runs, num_threads);
     } else if (benchmark_impl_name == "junction-grampa") {
         std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
         return HashJoinBenchmark::run_benchmark<HashJoinBenchmark::JunctionMapGrampa>("junction-grampa", dataset_a, dataset_b, num_runs, num_threads);
@@ -146,7 +146,7 @@ auto main_cache(int argc, const char** argv) -> BenchmarkResult {
         ("j,json", "Path to JSON output", cxxopts::value<std::string>()->implicit_value("json_out.json"))
         ("i,implementation", "Map implementation to use", cxxopts::value<std::string>()->implicit_value("std-blocking"))
         ("s,seed", "Random seed to use", cxxopts::value<uint64_t>()->default_value("37"))
-        ("t,time", "Time limit for this benchmark (ms)", cxxopts::value<uint64_t>()->default_value("30000"))
+        ("l,limit", "Time limit for this benchmark (ms)", cxxopts::value<uint64_t>()->default_value("30000"))
         ("c,capacity", "Map capacity (affects number of max indices)", cxxopts::value<uint64_t>()->default_value("500000"))
         ("h,help", "Print usage");
 
@@ -161,12 +161,30 @@ auto main_cache(int argc, const char** argv) -> BenchmarkResult {
     auto num_threads = result["threads"].as<uint32_t>();
     auto num_runs = result["runs"].as<uint32_t>();
     auto seed = result["seed"].as<uint64_t>();
-    auto time_limit = result["time"].as<uint64_t>();
+    auto time_limit = result["limit"].as<uint64_t>();
     auto capacity = result["capacity"].as<uint64_t>();
 
     auto benchmark_impl_name = result["implementation"].as<std::string>();
 
-    return CacheBenchmark::run_benchmark<CacheBenchmark::STDMap>("std-blocking", seed, time_limit, capacity, num_runs, num_threads);
+    if (benchmark_impl_name == "libcuckoo") {
+        std::cout << "Benchmarking libcuckoo!" << std::endl;
+        return CacheBenchmark::run_benchmark<CacheBenchmark::CuckooMap>("libcuckoo", seed, time_limit, capacity, num_runs, num_threads);
+    } else if (benchmark_impl_name == "tbb-hash") {
+        std::cout << "Benchmarking TBB concurrent_hash_map!" << std::endl;
+        return CacheBenchmark::run_benchmark<CacheBenchmark::TBBHashMap>("tbb-hash", seed, time_limit, capacity, num_runs, num_threads);
+    } else if (benchmark_impl_name == "std-blocking") {
+        std::cout << "Benchmarking Blocking STD!" << std::endl;
+        return CacheBenchmark::run_benchmark<CacheBenchmark::STDMap>("std-blocking", seed, time_limit, capacity, num_runs, num_threads);
+    } else if (benchmark_impl_name == "junction-grampa") {
+        std::cout << "Benchmarking Junction ConcurrentMap_Grampa!" << std::endl;
+        return CacheBenchmark::run_benchmark<CacheBenchmark::JunctionMapGrampa>("junction-grampa", seed, time_limit, capacity, num_runs, num_threads);
+    } else if (benchmark_impl_name == "junction-leapfrog") {
+        std::cout << "Benchmarking Junction ConcurrentMap_Leapfrog!" << std::endl;
+        return CacheBenchmark::run_benchmark<CacheBenchmark::JunctionMapLeapfrog>("junction-leapfrog", seed, time_limit, capacity, num_runs, num_threads);
+    } else {
+        std::cerr << "Unknown implementation " << benchmark_impl_name << std::endl;
+        std::exit(-1);
+    }
 }
 
 auto main(int argc, const char** argv) -> int {
@@ -213,11 +231,11 @@ auto main(int argc, const char** argv) -> int {
     std::cout << "Impl:      " << benchmark_result.impl << std::endl;
     std::cout << "Correct:   " << benchmark_result.correct << std::endl;
     std::cout << "Hash:      " << benchmark_result.hash << std::endl;
-    std::cout << "Runtime:   " << benchmark_result.total_time << std::endl;
-    std::cout << "Min time:  " << benchmark_result.min_time << std::endl;
-    std::cout << "Max time:  " << benchmark_result.max_time << std::endl;
-    std::cout << "Avg time:  " << benchmark_result.avg_time << std::endl;
-    std::cout << "Mean time: " << benchmark_result.mean_time << std::endl;
+    std::cout << "Runtime:   " << benchmark_result.total_value << std::endl;
+    std::cout << "Min value:  " << benchmark_result.min_value << std::endl;
+    std::cout << "Max value:  " << benchmark_result.max_value << std::endl;
+    std::cout << "Avg value:  " << benchmark_result.avg_value << std::endl;
+    std::cout << "Mean value: " << benchmark_result.mean_value << std::endl;
 
     std::cout << "json?: " << result.count("json") << std::endl;
 
