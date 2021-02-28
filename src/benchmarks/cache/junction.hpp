@@ -15,15 +15,25 @@ namespace CacheBenchmark {
             auto access(uint64_t key) -> CacheData {
                 // Junction needs the key 0 for it's own purposes
                 // so we modify tke key by 1
-                auto mutator = this->map.insertOrFind(key + 1);
+                auto mutator = this->map.find(key + 1);
                 auto value = mutator.getValue();
 
-                // If we just inserted a key, it will not be initialized
-                // Junction needs the values 0 (default) & 1 (redirect?) reserved for it's own
-                // purposes, so we modify the values by 2
-                if (value != (key + 2)) {
-                    mutator.assignValue(key + 2);
-                    this->size.fetch_add(1);
+                if (value == 0) {
+                    auto size = this->get_size();
+                    auto capacity = this->get_capacity();
+
+                    // Wait while we have less than 2% of free space
+                    while (size > capacity - (capacity / 50)) {
+                        size = this->get_size();
+                    }
+
+                    auto mutator = this->map.insertOrFind(key + 1);
+
+                    // Junction needs the values 0 (Default) and 1(Redirect) for it's own purposes
+                    // so we modify the value by 2
+                    auto old_value = mutator.exchangeValue(value + 2);
+                    if (old_value == 0)
+                        this->size.fetch_add(1);
 
                     return key;
                 } else {

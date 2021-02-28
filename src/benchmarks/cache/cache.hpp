@@ -30,8 +30,6 @@ namespace CacheBenchmark {
         std::mt19937 rng(seed);
         std::uniform_int_distribution<uint32_t> dist(0, num_ids);
 
-        DBG(<< "[Accessor] Starting!" << std::endl);
-
         while (!done.load()) {
             auto index = dist(rng);
 
@@ -40,8 +38,7 @@ namespace CacheBenchmark {
             num_accesses.fetch_add(1);
 
             // Sleep for 100 ns
-            busy_sleep(10000);                                // TODO: Make this an argument
-            DBG(<< "[Accessor] Waiting!" << std::endl);
+            busy_sleep(10000);
         }
     }
 
