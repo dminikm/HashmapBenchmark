@@ -60,6 +60,9 @@ auto main_wordcount(int argc, const char** argv) -> BenchmarkResult {
 
     auto benchmark_impl_name = result["implementation"].as<std::string>();
 
+    std::cout << "Num threads: " << num_threads << std::endl;
+    std::cout << "Num runs: " << num_runs << std::endl;
+
     if (benchmark_impl_name == "libcuckoo") {
         std::cout << "Benchmarking libcuckoo!" << std::endl;
         return WordCountBenchmark::run_benchmark<WordCountBenchmark::CuckooMap>(benchmark_impl_name, *file, num_runs, num_threads);
@@ -165,6 +168,12 @@ auto main_cache(int argc, const char** argv) -> BenchmarkResult {
     auto capacity = result["capacity"].as<uint64_t>();
 
     auto benchmark_impl_name = result["implementation"].as<std::string>();
+
+    std::cout << "Num threads: " << num_threads << std::endl;
+    std::cout << "Num runs: " << num_runs << std::endl;
+    std::cout << "Seed: " << seed << std::endl;
+    std::cout << "Timeout: " << time_limit << std::endl;
+    std::cout << "Capacity: " << capacity << std::endl;
 
     if (benchmark_impl_name == "libcuckoo") {
         std::cout << "Benchmarking libcuckoo!" << std::endl;

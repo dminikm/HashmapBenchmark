@@ -1,4 +1,4 @@
-    #pragma once
+#pragma once
 #include <unordered_map>
 #include <mutex>
 #include <shared_mutex>
@@ -18,31 +18,37 @@ namespace CacheBenchmark {
                 {
                     std::shared_lock lock(this->mtx);
                     auto res = this->map.find(key);
-                    if (res != this->map.end())
+                    if (res != this->map.end()) {
                         return res->second;
+                    }
                 }
+                
+                {
+                    auto size = this->get_size();
+                    auto capacity = this->get_capacity();
 
-                auto size = this->get_size();
-                auto capacity = this->get_capacity();
+                    // Wait while we have less than 2% of free space
+                    while (size > capacity - (capacity / 50)) {
+                        size = this->get_size();
+                    }
 
-                // Wait while we have less than 2% of free space
-                while (size > capacity - (capacity / 50)) {
-                    size = this->get_size();
+                    // No value found, bring out the exclusive lock
+                    std::unique_lock lock(this->mtx);
+                    auto result = this->map.emplace(
+                        key,
+                        key
+                    );
+
+                    if (result.second)
+                        this->size.fetch_add(1);
+
+                    return result.first->second;
                 }
-
-                // No value found, bring out the exclusive lock
-                std::unique_lock lock(this->mtx);
-                this->size.fetch_add(1);
-
-                return this->map.emplace(
-                    key,
-                    key
-                ).first->second;
             }
 
             auto erase(uint64_t key) -> void {
-                std::unique_lock lock(mtx);
-                if (this->map.erase(key) >= 0)
+                std::unique_lock lock(this->mtx);
+                if (this->map.erase(key) > 0)
                     this->size.fetch_sub(1);
             }
 
@@ -55,8 +61,8 @@ namespace CacheBenchmark {
             }
 
         private:
-            std::shared_mutex mtx;
-            std::unordered_map<uint64_t, CacheData> map;
+            std::shared_mutex mtx{};
+            std::unordered_map<uint64_t, CacheData> map{};
 
             std::atomic<uint64_t> size;
             uint64_t capacity;

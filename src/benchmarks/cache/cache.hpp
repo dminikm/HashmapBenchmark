@@ -48,7 +48,7 @@ namespace CacheBenchmark {
 
         bool cleaning = false;
 
-        for (uint64_t i = 1; !done.load(); i = (i + 1) % num_ids) {
+        for (uint64_t i = 1; !done.load() || cleaning;i = (i + 1) % num_ids) {
             auto size = map.get_size();
             auto capacity = map.get_capacity();
 
@@ -64,6 +64,11 @@ namespace CacheBenchmark {
 
             if (size < capacity - (capacity / 10)) {
                 cleaning = false;
+
+                // Exit when done cleaning
+                if (done.load()) {
+                    return;
+                }
             }
         }
     }
@@ -114,18 +119,20 @@ namespace CacheBenchmark {
             auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - current);
             auto ms = diff.count();
 
-            std::cout << "Time left: " << diff.count() << "ms (size: " << map.get_size() << ", capacity: " << map.get_capacity() << ")" << std::endl;
-
             if (ms <= 0) {
                 break;                                  // When we have reached the time limit, stop
-            } else if (diff.count() <= 10) {
-                continue;                               // Spin the last 10 milliseconds
+            } else if (diff.count() <= 1000) {
+                continue;                               // Spin the last 1 second
             } else {
+                std::cout << "Time left: " << diff.count() << "ms (size: " << map.get_size() << ", capacity: " << map.get_capacity() << ")" << std::endl;
                 std::this_thread::sleep_for(diff / 2);  // Wait otherwise
             }
         }
 
         // Finished
+        result.hash = 0;                        // No way to verify correctness
+        result.value = num_accesses;
+
         done.store(true);
 
         // Clean up threads
@@ -134,9 +141,6 @@ namespace CacheBenchmark {
         }
 
         cleaner_thread.join();
-
-        result.hash = 0;                        // No way to verify correctness
-        result.value = num_accesses;
 
         return result;
     }
@@ -158,6 +162,7 @@ namespace CacheBenchmark {
         result.hash = 0;
 
         for (uint32_t i = 0; i < num_runs; i++) {
+            std::cout << "Starting iteration " << (i + 1) << "/" << num_runs << std::endl;
             auto run_result = benchmark_impl<T>(seed, time_limit, map_capacity, num_threads);
 
             if (i == 0) {

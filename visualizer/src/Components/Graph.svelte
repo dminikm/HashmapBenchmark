@@ -25,12 +25,12 @@
         return processedData;
     }
 
-    function getRanges(minTime: number, maxTime: number, availHeight: number): number[] {
+    function getRanges(minValue: number, maxValue: number, availHeight: number): number[] {
         const numRanges = Math.floor(Math.max(availHeight / 100, 1));
 
         let ranges = [];
         for (let i = 0; i < numRanges; i++) {
-            ranges = [...ranges, Math.floor(minTime + (((maxTime - minTime) / (numRanges - 1)) * i))];
+            ranges = [...ranges, Math.floor(minValue + (((maxValue - minValue) / (numRanges - 1)) * i))];
         }
 
         return ranges;
@@ -53,7 +53,7 @@
         for (let i = 0; i < ranges.length; i++) {
             const range = ranges[i];
 
-            if (bench.avg_time > range) {
+            if (bench.avg_value > range) {
                 biggerThan = i;
                 smallerThan = i + 1;
             } else {
@@ -64,13 +64,13 @@
         const bigger = ranges[biggerThan];
         const smaller = ranges[smallerThan] || bigger;
 
-        const perc = (bench.avg_time - bigger) / (smaller - bigger);
+        const perc = (bench.avg_value - bigger) / (smaller - bigger);
         return (biggerThan * ySpacing) + (ySpacing * perc);
     }
 
     $: numThreads = Math.max(...Array.from(processedData).map(([key, value]) => value.size), 1);
-    $: maxTime = Math.max(...Array.from(processedData).map(([key, value]) => Math.max(...Array.from(value).map(([key, x]) => x.max_time))));
-    $: minTime = Math.min(...Array.from(processedData).map(([key, value]) => Math.min(...Array.from(value).map(([key, x]) => x.min_time))));
+    $: maxValue = Math.max(...Array.from(processedData).map(([key, value]) => Math.max(...Array.from(value).map(([key, x]) => x.max_value))));
+    $: minValue = Math.min(...Array.from(processedData).map(([key, value]) => Math.min(...Array.from(value).map(([key, x]) => x.min_value))));
 
     let graphHeight: number;
     let graphWidth: number;
@@ -83,7 +83,7 @@
     $: availWidth = (graphWidth - leftBarWidth) - rightBarWidth;
 
     $: ranges = [
-        ...getRanges(minTime - 1000000, maxTime + 1000000, availHeight),
+        ...getRanges(minValue - 1000000, maxValue + 1000000, availHeight),
     ];
 
     $: threads = getThreads(processedData);
@@ -201,7 +201,7 @@
                     <PopupBubble
                         tipX={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
                         tipY={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark) - 4}
-                        text={`${Math.floor(benchmark.avg_time / 1000000)}ms`}
+                        text={`${Math.floor(benchmark.avg_value / 1000000)}ms`}
                     />
                 </g>
                 

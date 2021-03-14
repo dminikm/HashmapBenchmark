@@ -1,5 +1,5 @@
 interface BenchmarkRun {
-    time: number,
+    value: number,
     hash: number,
 }
 
@@ -9,11 +9,11 @@ export interface BenchmarkResult {
     correct: boolean,
     num_runs: number,
     num_threads: number,
-    total_time: number,
-    min_time: number,
-    avg_time: number,
-    mean_time: number,
-    max_time: number,
+    total_value: number,
+    min_value: number,
+    avg_value: number,
+    mean_value: number,
+    max_value: number,
 }
 
 type DeepPartialArr<T extends any[]> =
