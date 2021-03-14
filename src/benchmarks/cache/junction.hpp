@@ -6,15 +6,30 @@
 #include <junction/ConcurrentMap_Linear.h>
 
 namespace CacheBenchmark {
+    auto nearest_power_of_2(uint64_t n) -> uint64_t {
+        n--;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+        n |= n >> 32;
+        n++;
+
+        return n;
+    }
+
     template<typename MapType>
     class JunctionMap {
         public:
-            JunctionMap(uint64_t capacity) : capacity(capacity), size(0), map(capacity) {
+            // It's never mentioned anywhere, but leapfrogs size needs to be a power of 2
+            JunctionMap(uint64_t capacity) : capacity(capacity), size(0), map(nearest_power_of_2(capacity)) {
             }
 
             auto access(uint64_t key) -> CacheData {
                 // Junction needs the key 0 for it's own purposes
                 // so we modify tke key by 1
+
                 auto mutator = this->map.find(key + 1);
                 auto value = mutator.getValue();
 
