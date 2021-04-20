@@ -126,7 +126,9 @@
 <div bind:clientWidth={graphWidth} bind:clientHeight={graphHeight}>
     <svg>
         {#each ranges as range, i }
-            <text x={0} y={graphHeight - bottomBarHeight - (i * ySpacing)}>{Math.floor(range / 1000000)}ms</text>
+            <text x={0} y={graphHeight - bottomBarHeight - (i * ySpacing)}>
+                {range}
+            </text>
             {#if i > 0}
                 <line
                     x1={leftBarWidth}
@@ -201,7 +203,7 @@
                     <PopupBubble
                         tipX={leftBarWidth + (xSpacing * i) + (xSpacing / 2)}
                         tipY={graphHeight - (fontSize / 2) - bottomBarHeight - getCenterYForBench(benchmark) - 4}
-                        text={`${Math.floor(benchmark.avg_value / 1000000)}ms`}
+                        text={`${benchmark.avg_value}`}
                     />
                 </g>
                 

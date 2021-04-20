@@ -43,17 +43,17 @@ namespace CacheBenchmark {
     }
 
     template<typename T>
-    inline auto benchmark_cleaner(Semaphore& sem, T& map, const std::atomic<bool>& done, uint64_t num_ids) -> void {
+    inline auto benchmark_cleaner(uint64_t start, Semaphore& sem, T& map, const std::atomic<bool>& done, uint64_t num_ids) -> void {
         sem.wait();
 
         bool cleaning = false;
 
-        for (uint64_t i = 1; !done.load() || cleaning;i = (i + 1) % num_ids) {
+        for (uint64_t i = start; !done.load() || cleaning;i = (i + 1) % num_ids) {
             auto size = map.get_size();
             auto capacity = map.get_capacity();
 
-            // Wait if we haven't reached 95% capacity and we aren't cleaning
-            while (!cleaning && size < capacity - (capacity / 20)) {
+            // Wait if we haven't reached 80% capacity and we aren't cleaning
+            while (!cleaning && size < capacity - (capacity / 5)) {
                 size = map.get_size();
                 if (done.load())
                     return;
@@ -62,7 +62,7 @@ namespace CacheBenchmark {
             cleaning = true;
             map.erase(i);
 
-            if (size < capacity - (capacity / 10)) {
+            if (size < capacity - (capacity / 5)) {
                 cleaning = false;
 
                 // Exit when done cleaning
@@ -87,6 +87,16 @@ namespace CacheBenchmark {
         std::atomic<bool> done = false;
         std::thread cleaner_thread(
             &benchmark_cleaner<T>,
+            1,
+            std::ref(sem),
+            std::ref(map),
+            std::cref(done),
+            num_ids
+        );
+
+        std::thread cleaner_thread2(
+            &benchmark_cleaner<T>,
+            map_capacity - 10,
             std::ref(sem),
             std::ref(map),
             std::cref(done),
@@ -141,6 +151,7 @@ namespace CacheBenchmark {
         }
 
         cleaner_thread.join();
+        cleaner_thread2.join();
 
         return result;
     }
