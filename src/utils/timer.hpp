@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #ifdef _WIN32
+
 #define NOMINMAX
 #include <Windows.h>
 
@@ -53,27 +54,28 @@ class Timer {
         uint64_t end_ns = 0;
         bool running = true;
 };
+
 #else
 #include <chrono>
 
-auto get_timepoint() -> std::chrono::time_point<std::chrono::high_resolution_clock> {
-    return std::chrono::high_resolution_clock::now();
+auto get_timepoint() -> uint64_t {
+    return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch().count();
 }
 
 auto get_duration(uint64_t start_timepoint, uint64_t end_timepoint) -> uint64_t {
-    return end_timepoint - start_timepoint
+    return end_timepoint - start_timepoint;
 }
 
 class Timer {
     public:
         auto start() -> void {
-            this->start_pt = get_timepoint();
+            this->start_pt = ::get_timepoint();
             this->end_pt = this->start_pt;
             this->running = true;
         }
 
         auto end() -> void {
-            this->end_pt = get_timepoint();
+            this->end_pt = ::get_timepoint();
             this->running = false;
         }
 
@@ -83,7 +85,7 @@ class Timer {
                 this->running = true;
             }
 
-            return this->end_pt - this->start_pt
+            return ::get_duration(this->start_pt, this->end_pt);
         }
 
         auto is_running() -> bool {
@@ -91,8 +93,9 @@ class Timer {
         }
 
     private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> start_pt{};
-        std::chrono::time_point<std::chrono::high_resolution_clock> end_pt{};
+        uint64_t start_pt{};
+        uint64_t end_pt{};
         bool running = true;
 };
+
 #endif
